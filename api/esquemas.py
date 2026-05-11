@@ -77,8 +77,13 @@ class RespuestaPrediccion(BaseModel):
     advertencia: str | None = None
 
 
-class RespuestaSalud(BaseModel):
-    estado: Literal["ok", "degradado"]
+class DetallesSalud(BaseModel):
     modelo_cargado: bool
+    ruta_modelo: str
+    timestamp_servidor: str
+
+
+class RespuestaSalud(BaseModel):
+    estado: Literal["operativo", "degradado"]
     version: str
-    mensaje: str
+    detalles: DetallesSalud

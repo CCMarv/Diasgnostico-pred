@@ -55,7 +55,9 @@ def test_salud_degradado_sin_modelo():
 
     assert respuesta.status_code == 200
     data = respuesta.json()
-    assert data["estado"] in {"ok", "degradado"}
+    assert data["estado"] in {"operativo", "degradado"}
+    assert "detalles" in data
+    assert "modelo_cargado" in data["detalles"]
 
 
 def test_predecir_retorna_503_si_modelo_no_esta_listo():

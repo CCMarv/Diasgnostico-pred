@@ -1,16 +1,31 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+import logging
 
 from fastapi import FastAPI, HTTPException
 
-from api.esquemas import DatosPaciente, RespuestaPrediccion, RespuestaSalud
-from config import MARGEN_INCERTIDUMBRE, UMBRAL_RIESGO_ALTO, UMBRAL_RIESGO_BAJO, VERSION_SISTEMA
+from .config import (
+    MARGEN_INCERTIDUMBRE,
+    UMBRAL_RIESGO_ALTO,
+    UMBRAL_RIESGO_BAJO,
+    ConfiguracionAPI,
+    ConfiguracionLogs,
+    ConfiguracionRutas,
+)
+from .esquemas import DatosPaciente, DetallesSalud, RespuestaPrediccion, RespuestaSalud
 from inferencia.predictor import PredictorDiabetes
+
+NIVEL_LOG = logging.getLevelNamesMapping().get(ConfiguracionLogs.NIVEL.upper(), logging.INFO)
+logging.basicConfig(format=ConfiguracionLogs.FORMATO, level=NIVEL_LOG)
+logger = logging.getLogger(__name__)
+logger.info("Arrancando API de Diagnóstico Predictivo...")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Propósito: inicializar predictor al arrancar; firma: (app: FastAPI) -> async context manager."""
     predictor = PredictorDiabetes()
     predictor.cargar_modelo()
     app.state.predictor = predictor
@@ -18,17 +33,49 @@ async def lifespan(app: FastAPI):
 
 
 def crear_app() -> FastAPI:
-    app = FastAPI(title="diabetes-ia-mx", version=VERSION_SISTEMA, lifespan=lifespan)
+    """Propósito: construir FastAPI; firma: () -> FastAPI; error: fallos internos se delegan a FastAPI."""
+    app = FastAPI(title=ConfiguracionAPI.TITULO, version=ConfiguracionAPI.VERSION, lifespan=lifespan)
 
     @app.get("/salud", response_model=RespuestaSalud)
     def salud() -> RespuestaSalud:
-        predictor: PredictorDiabetes = app.state.predictor
-        listo = predictor.esta_listo()
+        """
+        Propósito:
+        Exponer salud operativa con modo degradado proactivo.
+
+        Firma técnica:
+        - Parámetros: ninguno.
+        - Retorno: RespuestaSalud.
+
+        Lógica resumida:
+        - Verifica existencia y tamaño > 0 del archivo de modelo.
+        - Emite estado operativo/degradado y metadatos de diagnóstico.
+
+        Caso de error principal:
+        - Si falla acceso al filesystem, se degrada a `modelo_cargado=False`.
+        """
+        ruta_modelo = ConfiguracionRutas.RUTA_MODELO
+        modelo_cargado = False
+        if ruta_modelo.exists():
+            try:
+                modelo_cargado = ruta_modelo.stat().st_size > 0
+            except OSError as exc:
+                logger.warning(
+                    "No fue posible inspeccionar el archivo de modelo; API operando en modo degradado: %s",
+                    exc,
+                )
+
+        estado = "operativo" if modelo_cargado else "degradado"
+        if not modelo_cargado:
+            logger.warning("Modelo no disponible o vacío; API operando en modo degradado.")
+
         return RespuestaSalud(
-            estado="ok" if listo else "degradado",
-            modelo_cargado=listo,
-            version=VERSION_SISTEMA,
-            mensaje="Servicio listo." if listo else "Modelo no disponible aún. Servicio en modo degradado.",
+            estado=estado,
+            version=ConfiguracionAPI.VERSION,
+            detalles=DetallesSalud(
+                modelo_cargado=modelo_cargado,
+                ruta_modelo=ruta_modelo.name,
+                timestamp_servidor=datetime.now(tz=timezone.utc).isoformat(),
+            ),
         )
 
     @app.post("/predecir", response_model=RespuestaPrediccion)

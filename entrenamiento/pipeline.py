@@ -10,17 +10,16 @@ from sklearn.model_selection import train_test_split
 from config import (
     COLUMNA_OBJETIVO,
     COLUMNAS_CDC,
-    CLUSTERS_PREDETERMINADOS,
     PROPORCION_PRUEBA,
     RUTA_MODELO_FINAL,
     RUTA_REPORTE_METRICAS,
     SEMILLA_ALEATORIA,
 )
 from entrenamiento.cargador_datos import CargadorDatos
-from entrenamiento.comparador_modelos import ComparadorModelos
+from entrenamiento.comparador_modelos import CLUSTERS_POR_DEFECTO, ComparadorModelos
 
 
-def ejecutar_pipeline(modo: str, ruta_dataset: Path | None, ruta_modelo: Path, ruta_reporte: Path, n_clusters: int = CLUSTERS_PREDETERMINADOS) -> dict[str, float | str]:
+def ejecutar_pipeline(modo: str, ruta_dataset: Path | None, ruta_modelo: Path, ruta_reporte: Path, n_clusters: int = CLUSTERS_POR_DEFECTO) -> dict[str, float | str]:
     """Orquesta entrenamiento mínimo para clasificación o clustering."""
     cargador = CargadorDatos()
     comparador = ComparadorModelos()
@@ -74,7 +73,7 @@ def construir_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dataset", type=Path, default=None)
     parser.add_argument("--salida-modelo", type=Path, default=RUTA_MODELO_FINAL)
     parser.add_argument("--salida-reporte", type=Path, default=RUTA_REPORTE_METRICAS)
-    parser.add_argument("--clusters", type=int, default=CLUSTERS_PREDETERMINADOS)
+    parser.add_argument("--clusters", type=int, default=CLUSTERS_POR_DEFECTO)
     return parser
 
 

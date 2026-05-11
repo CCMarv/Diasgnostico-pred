@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Final
 
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.dummy import DummyClassifier
 from sklearn.metrics import accuracy_score
 
-from config import CLUSTERS_PREDETERMINADOS, SEMILLA_ALEATORIA
+from config import SEMILLA_ALEATORIA
+
+CLUSTERS_POR_DEFECTO: Final[int] = 3
 
 
 @dataclass(slots=True)
@@ -28,7 +31,7 @@ class ComparadorModelos:
         puntaje = accuracy_score(y_prueba, pred)
         return [ResultadoModelo(nombre="dummy_prior", puntaje=float(puntaje), modelo=modelo_base)]
 
-    def entrenar_clustering(self, x_entrenamiento: np.ndarray, n_clusters: int = CLUSTERS_PREDETERMINADOS) -> ResultadoModelo:
+    def entrenar_clustering(self, x_entrenamiento: np.ndarray, n_clusters: int = CLUSTERS_POR_DEFECTO) -> ResultadoModelo:
         modelo = KMeans(n_clusters=n_clusters, random_state=SEMILLA_ALEATORIA, n_init="auto")
         modelo.fit(x_entrenamiento)
         inercia = float(modelo.inertia_)
