@@ -1,4 +1,4 @@
-# diabetes-ia-mx
+# Diasgnostico-pred
 
 Primera espiral del proyecto de diagnóstico de riesgo de diabetes (CDC) con arquitectura modular en español.
 
