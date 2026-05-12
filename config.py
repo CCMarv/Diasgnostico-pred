@@ -62,6 +62,7 @@ MODELOS_DIR: Final[Path] = ConfiguracionRutas.DIR_MODELOS
 REPORTES_DIR: Final[Path] = ConfiguracionRutas.DIR_REPORTES
 
 NOMBRE_DATASET: Final[str] = "diabetes_binary_health_indicators_BRFSS2015.csv"
+NOMBRE_DATASET_UCI_ID: Final[int] = 891
 RUTA_DATASET_PREDETERMINADA: Final[Path] = DATOS_BRUTOS_DIR / NOMBRE_DATASET
 
 COLUMNAS_CDC: Final[tuple[str, ...]] = (
