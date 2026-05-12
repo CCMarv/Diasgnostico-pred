@@ -17,17 +17,26 @@ from config import (
 )
 from entrenamiento.cargador_datos import CargadorDatos
 from entrenamiento.comparador_modelos import CLUSTERS_POR_DEFECTO, ComparadorModelos
+from entrenamiento.evaluador import EvaluadorClinico
 
 
-def ejecutar_pipeline(modo: str, ruta_dataset: Path | None, ruta_modelo: Path, ruta_reporte: Path, n_clusters: int = CLUSTERS_POR_DEFECTO) -> dict[str, float | str]:
-    """Orquesta entrenamiento mínimo para clasificación o clustering."""
+def ejecutar_pipeline(
+    modo: str,
+    ruta_dataset: Path | None,
+    ruta_modelo: Path,
+    ruta_reporte: Path,
+    n_clusters: int = CLUSTERS_POR_DEFECTO,
+) -> dict[str, float | str]:
+    """Orquesta entrenamiento clínico para clasificación o clustering."""
     cargador = CargadorDatos()
     comparador = ComparadorModelos()
+    evaluador = EvaluadorClinico()
 
     if modo == "clasificacion":
         df = cargador.cargar(ruta_dataset=ruta_dataset, incluir_objetivo=True)
-        x = df[list(COLUMNAS_CDC)]
-        y = df[COLUMNA_OBJETIVO]
+        limpio = cargador.limpieza_basica(df, incluir_objetivo=True)
+        x = limpio[list(COLUMNAS_CDC)]
+        y = limpio[COLUMNA_OBJETIVO].astype(int)
 
         x_ent, x_pru, y_ent, y_pru = train_test_split(
             x,
@@ -37,16 +46,34 @@ def ejecutar_pipeline(modo: str, ruta_dataset: Path | None, ruta_modelo: Path, r
             stratify=y,
         )
         resultados = comparador.entrenar_clasificacion(
-            x_ent.to_numpy(),
-            y_ent.to_numpy(),
-            x_pru.to_numpy(),
-            y_pru.to_numpy(),
+            x_entrenamiento=x_ent,
+            y_entrenamiento=y_ent,
+            x_prueba=x_pru,
+            y_prueba=y_pru,
         )
+
+        for resultado in resultados:
+            y_prob = resultado.modelo.predict_proba(x_pru)[:, 1]
+            metricas_modelo = evaluador.calcular_metricas(y_pru.to_numpy(), y_prob)
+            resultado.metricas.update(metricas_modelo)
+            evaluador.graficar_curvas(y_pru.to_numpy(), y_prob, resultado.nombre)
+
+        tabla = evaluador.comparar_modelos(resultados)
         mejor = comparador.seleccionar_mejor(resultados)
+
+        ruta_parquet = cargador.guardar_procesado_parquet(limpio)
         metricas: dict[str, float | str] = {
             "modo": modo,
             "modelo": mejor.nombre,
-            "puntaje": mejor.puntaje,
+            "puntaje": float(mejor.puntaje),
+            "roc_auc": float(mejor.metricas.get("roc_auc", mejor.puntaje)),
+            "sensibilidad": float(mejor.metricas.get("sensibilidad", 0.0)),
+            "especificidad": float(mejor.metricas.get("especificidad", 0.0)),
+            "f1": float(mejor.metricas.get("f1", 0.0)),
+            "pr_auc": float(mejor.metricas.get("pr_auc", 0.0)),
+            "brier_score": float(mejor.metricas.get("brier_score", 1.0)),
+            "dataset_procesado": str(ruta_parquet),
+            "modelos_comparados": ", ".join(tabla["modelo"].astype(str).tolist()),
         }
     elif modo == "clustering":
         df = cargador.cargar(ruta_dataset=ruta_dataset, incluir_objetivo=False)
