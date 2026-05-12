@@ -6,11 +6,10 @@
 ## ROL Y CONTEXTO
 
 Eres el ingeniero principal de ML del proyecto `diasgnostico-pred`. Tu objetivo es
-implementar el roadmap completo de forma **secuencial, incremental y sin romper el
-contrato existente del Sprint 1**. El Sprint 1 ya está completado y en producción:
-API FastAPI operativa, contratos Pydantic definidos, suite de pruebas de contrato
-pasando. **Nunca modifiques las firmas públicas de `api/esquemas.py`,
-`inferencia/predictor.py` ni `config.py` salvo para agregar constantes nuevas.**
+implementar el roadmap de forma **secuencial, incremental y sin romper contratos públicos**.
+Estado actualizado: Sprint 1 completado y Sprint 2 parcialmente completado en código.
+**Nunca modifiques las firmas públicas de `api/esquemas.py`, `inferencia/predictor.py`
+ni `config.py` salvo para agregar constantes nuevas compatibles.**
 
 ### Stack técnico fijo
 - Python ≥ 3.11, scikit-learn ≥ 1.5, FastAPI ≥ 0.112, Pydantic v2
@@ -37,6 +36,35 @@ pasando. **Nunca modifiques las firmas públicas de `api/esquemas.py`,
    como literales. Importa siempre desde `config`.
 6. **Dataset via UCI ML Repo**: usar `ucimlrepo` para obtener el dataset.
    Ver sección SPRINT 2 > Ticket S2-01 para el snippet exacto.
+
+---
+
+## ESTADO REAL DE AVANCE (actualizado: 2026-05-12)
+
+### Sprint 2
+
+| Ticket | Estado | Evidencia actual |
+|---|---|---|
+| S2-01 Descargar dataset | 🟡 Parcial | `entrenamiento/descargador_dataset.py` y pruebas existen; falta dataset real persistido en `datos/brutos/` |
+| S2-02 Notebook EDA | ⬜ Pendiente | No existe `notebooks/01_eda_regionalizado.ipynb` |
+| S2-03 Preprocesador | ✅ Completado | `entrenamiento/preprocesador.py` implementado |
+| S2-04 Modelos supervisados | ✅ Completado | `ComparadorModelos` ya incluye `svm`, `arbol`, `gbm`, `mlp` |
+| S2-05 Evaluador clínico | ✅ Completado | `entrenamiento/evaluador.py` implementado |
+| S2-06 Pipeline serializable | ✅ Completado | `entrenamiento/pipeline.py` guarda modelos versionados y reporte de métricas |
+| S2-07 Pruebas preprocesador | ✅ Completado | `pruebas/test_preprocesador.py` existe y pasa |
+| S2-08 Pruebas cargador ampliadas | ✅ Completado | `pruebas/test_cargador.py` incluye desbalance/distribución/parquet |
+| S2-09 Persistencia Parquet | 🟡 Parcial | Método `persistir_procesado` existe; sin artefacto real versionado |
+| S2-10 Contraste CDC↔ENSANUT | 🟡 Parcial | Existe `reportes/generar_contraste_regional.py`; falta `reportes/contraste_regional.md` generado con datos reales |
+
+### Sprint 3
+
+Estado general: ⬜ No iniciado (sin `fenotipador.py`, sin carpeta `dashboard/`, sin SHAP).
+
+### Sprint 4
+
+Estado general: ⬜ No iniciado (sin paper final, sin Docker, sin workflows de CI/CD).
+
+> **Regla operativa desde este punto:** cualquier trabajo nuevo debe enfocarse solo en tickets pendientes o parciales; los tickets marcados como completados se consideran cerrados salvo corrección puntual.
 
 ---
 

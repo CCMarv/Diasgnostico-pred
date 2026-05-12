@@ -3,6 +3,7 @@
 
 > **Documento:** Parte 2 de 2  
 > **Continúa de:** ROADMAP_PARTE1.md  
+> **Estado actualizado (2026-05-12):** Sprint 3 y Sprint 4 no iniciados; se mantiene como plan de ejecución posterior a cerrar pendientes de datos reales en Sprint 2.
 
 ---
 
@@ -216,19 +217,19 @@ port = 8501
 
 ### 3.4 Tickets de trabajo Sprint 3
 
-| ID | Tarea | Prioridad | Dependencia |
-|---|---|---|---|
-| S3-01 | Implementar `entrenamiento/fenotipador.py` con método del codo + silhouette | 🔴 CRÍTICA | S2-04 |
-| S3-02 | Integrar fenotipador como etapa 0 en pipeline supervisado | 🔴 CRÍTICA | S3-01, S2-06 |
-| S3-03 | Generar tabla de perfiles de fenotipos con prevalencia de diabetes por cluster | 🔴 CRÍTICA | S3-01 |
-| S3-04 | Crear `dashboard/app.py` — Pantalla 1: formulario de captura | 🔴 CRÍTICA | Ninguna |
-| S3-05 | Crear `dashboard/app.py` — Pantalla 2: resultado con gauge y SHAP | 🟡 ALTA | S3-04, S3-07 |
-| S3-06 | Crear `dashboard/app.py` — Pantalla 3: panel estadístico del médico | 🟡 ALTA | S3-04 |
-| S3-07 | Calcular SHAP values para el mejor modelo supervisado | 🟡 ALTA | S2-04 |
-| S3-08 | Crear `dashboard/cliente_api.py` con manejo de errores 503 | 🟡 ALTA | S3-04 |
-| S3-09 | Tema IMSS en `.streamlit/config.toml` | 🟢 MEDIA | S3-04 |
-| S3-10 | Añadir exportación de resultado como PDF desde Streamlit | 🟢 MEDIA | S3-05 |
-| S3-11 | Prueba de integración: formulario Streamlit → API → resultado coherente | 🟢 MEDIA | S3-05, S3-08 |
+| ID | Tarea | Prioridad | Dependencia | Estado actual | Hecho hasta ahora |
+|---|---|---|---|---|---|
+| S3-01 | Implementar `entrenamiento/fenotipador.py` con método del codo + silhouette | 🔴 CRÍTICA | S2-04 | ⬜ PENDIENTE | No existe `entrenamiento/fenotipador.py` en el repositorio |
+| S3-02 | Integrar fenotipador como etapa 0 en pipeline supervisado | 🔴 CRÍTICA | S3-01, S2-06 | ⬜ PENDIENTE | `entrenamiento/pipeline.py` aún no tiene flujo con fenotipos |
+| S3-03 | Generar tabla de perfiles de fenotipos con prevalencia de diabetes por cluster | 🔴 CRÍTICA | S3-01 | ⬜ PENDIENTE | No existe generador de perfiles de fenotipos |
+| S3-04 | Crear `dashboard/app.py` — Pantalla 1: formulario de captura | 🔴 CRÍTICA | Ninguna | ⬜ PENDIENTE | No existe directorio `dashboard/` |
+| S3-05 | Crear `dashboard/app.py` — Pantalla 2: resultado con gauge y SHAP | 🟡 ALTA | S3-04, S3-07 | ⬜ PENDIENTE | Sin implementación de UI ni capa SHAP |
+| S3-06 | Crear `dashboard/app.py` — Pantalla 3: panel estadístico del médico | 🟡 ALTA | S3-04 | ⬜ PENDIENTE | Sin implementación de panel agregado |
+| S3-07 | Calcular SHAP values para el mejor modelo supervisado | 🟡 ALTA | S2-04 | ⬜ PENDIENTE | No hay script SHAP ni artefactos SHAP en `reportes/` |
+| S3-08 | Crear `dashboard/cliente_api.py` con manejo de errores 503 | 🟡 ALTA | S3-04 | ⬜ PENDIENTE | Cliente Streamlit no creado |
+| S3-09 | Tema IMSS en `.streamlit/config.toml` | 🟢 MEDIA | S3-04 | ⬜ PENDIENTE | No existe configuración Streamlit |
+| S3-10 | Añadir exportación de resultado como PDF desde Streamlit | 🟢 MEDIA | S3-05 | ⬜ PENDIENTE | Exportación PDF no implementada |
+| S3-11 | Prueba de integración: formulario Streamlit → API → resultado coherente | 🟢 MEDIA | S3-05, S3-08 | ⬜ PENDIENTE | No hay pruebas de integración para dashboard |
 
 ---
 
@@ -313,18 +314,18 @@ Esta tabla debe aparecer en la sección de Discusión del paper. Compara el rend
 
 ### 4.3 Tickets de trabajo Sprint 4
 
-| ID | Tarea | Prioridad | Dependencia |
-|---|---|---|---|
-| S4-01 | Redactar secciones 1–3 del paper usando resultados del EDA Sprint 2 | 🔴 CRÍTICA | S2-02 |
-| S4-02 | Completar sección 4–5 con tablas de resultados y gráficas generadas | 🔴 CRÍTICA | S2-05, S3-07 |
-| S4-03 | Análisis de equidad: calcular ROC-AUC por subgrupo (sexo, edad, ingreso) | 🔴 CRÍTICA | S2-05 |
-| S4-04 | Redactar sección 6 (Discusión) con contraste CDC↔ENSANUT | 🟡 ALTA | S4-01, S4-02 |
-| S4-05 | Crear `Dockerfile` multi-stage para API + Dashboard | 🟡 ALTA | S3-08 |
-| S4-06 | Crear `docker-compose.yml`: servicio API + servicio Dashboard | 🟡 ALTA | S4-05 |
-| S4-07 | Configurar GitHub Actions: lint (ruff) + pytest + build imagen | 🟡 ALTA | Ninguna |
-| S4-08 | Añadir `pip audit` al pipeline CI para auditoría de dependencias | 🟢 MEDIA | S4-07 |
-| S4-09 | Exportar paper a PDF vía nbconvert o pandoc | 🟢 MEDIA | S4-02 |
-| S4-10 | Etiqueta de versión `v1.0.0` en repositorio | 🟢 MEDIA | S4-09 |
+| ID | Tarea | Prioridad | Dependencia | Estado actual | Hecho hasta ahora |
+|---|---|---|---|---|---|
+| S4-01 | Redactar secciones 1–3 del paper usando resultados del EDA Sprint 2 | 🔴 CRÍTICA | S2-02 | ⬜ PENDIENTE | No existe `reportes/paper_final.md` |
+| S4-02 | Completar sección 4–5 con tablas de resultados y gráficas generadas | 🔴 CRÍTICA | S2-05, S3-07 | ⬜ PENDIENTE | No hay paper con resultados consolidados |
+| S4-03 | Análisis de equidad: calcular ROC-AUC por subgrupo (sexo, edad, ingreso) | 🔴 CRÍTICA | S2-05 | ⬜ PENDIENTE | No existe módulo de equidad ni reporte asociado |
+| S4-04 | Redactar sección 6 (Discusión) con contraste CDC↔ENSANUT | 🟡 ALTA | S4-01, S4-02 | ⬜ PENDIENTE | Sin borrador de discusión en `reportes/` |
+| S4-05 | Crear `Dockerfile` multi-stage para API + Dashboard | 🟡 ALTA | S3-08 | ⬜ PENDIENTE | No hay `Dockerfile` |
+| S4-06 | Crear `docker-compose.yml`: servicio API + servicio Dashboard | 🟡 ALTA | S4-05 | ⬜ PENDIENTE | No hay `docker-compose.yml` |
+| S4-07 | Configurar GitHub Actions: lint (ruff) + pytest + build imagen | 🟡 ALTA | Ninguna | ⬜ PENDIENTE | No existe `.github/workflows/` |
+| S4-08 | Añadir `pip audit` al pipeline CI para auditoría de dependencias | 🟢 MEDIA | S4-07 | ⬜ PENDIENTE | Sin pipeline CI donde integrar auditoría |
+| S4-09 | Exportar paper a PDF vía nbconvert o pandoc | 🟢 MEDIA | S4-02 | ⬜ PENDIENTE | No hay artefacto PDF del paper |
+| S4-10 | Etiqueta de versión `v1.0.0` en repositorio | 🟢 MEDIA | S4-09 | ⬜ PENDIENTE | Aún no se alcanza estado de release |
 
 ---
 

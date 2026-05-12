@@ -3,7 +3,7 @@
 
 > **Documento:** Parte 1 de 2  
 > **Audiencia:** Technical Lead + Evaluador Académico  
-> **Estado base:** Sprint 1 completado — API productiva con DummyClassifier  
+> **Estado base actualizado (2026-05-12):** Sprint 2 en ejecución — núcleo técnico implementado (8/10 tickets), faltan artefactos de datos reales (notebook EDA y reporte final de contraste)  
 > **Objetivo:** Alcanzar nivel Avanzado en rúbrica + contextualización para población mexicana  
 
 ---
@@ -14,20 +14,20 @@
 
 | Dimensión | Nivel Básico | Nivel Intermedio | Nivel Avanzado | Estado actual |
 |---|---|---|---|---|
-| Modelos supervisados | 3 modelos entrenados | SVM + Árbol + Red Neuronal | Comparativa con literatura | ❌ Solo DummyClassifier |
-| Preprocesamiento | Limpieza básica | Escalado + codificación | Pipeline sklearn sin data leakage | ⚠️ Contrato listo, sin datos reales |
-| Métricas | Accuracy | F1, AUC-ROC | Métricas clínicas (sensibilidad/especificidad) | ❌ Sin modelo real |
-| Modelo no supervisado | — | K-Means como agrupador | K-Means como fenotipado metabólico | ❌ Stub sin propósito clínico |
+| Modelos supervisados | 3 modelos entrenados | SVM + Árbol + Red Neuronal | Comparativa con literatura | ✅ Implementados en `entrenamiento/comparador_modelos.py` (pendiente entrenar con dataset real) |
+| Preprocesamiento | Limpieza básica | Escalado + codificación | Pipeline sklearn sin data leakage | ✅ `ConstructorPreprocesador` implementado y probado |
+| Métricas | Accuracy | F1, AUC-ROC | Métricas clínicas (sensibilidad/especificidad) | ✅ `EvaluadorClinico` implementado (ROC-AUC, PR-AUC, sensibilidad, especificidad, calibración) |
+| Modelo no supervisado | — | K-Means como agrupador | K-Means como fenotipado metabólico | ⚠️ Solo K-Means base en `ComparadorModelos`; fenotipado clínico aún pendiente |
 | Dashboard | — | Visualización interactiva | Interfaz de consultorio IMSS | ❌ No implementado |
 | API en producción | — | — | FastAPI desplegada | ✅ Completado |
-| Contextualización regional | — | — | Contraste ENSANUT vs. CDC | ❌ No implementado |
+| Contextualización regional | — | — | Contraste ENSANUT vs. CDC | ⚠️ Tabla/mapeo y script de contraste listos; falta generar reporte final con dataset real |
 
 **Brechas críticas desbloqueantes (en orden de prioridad):**
 
-1. Dataset real CDC BRFSS 2015 (`datos/brutos/`) — sin él ningún sprint avanza
-2. Tres modelos supervisados con métricas clínicas robustas
-3. Narrativa de regionalización: por qué el dataset CDC es válido como proxy para México
-4. K-Means reencuadrado como fenotipado clínico (no como predictor)
+1. Poblar `datos/brutos/` con dataset real y ejecutar pipeline end-to-end (aún no hay artefactos de datos/versiones en repo)
+2. Completar notebook EDA regionalizado (`notebooks/01_eda_regionalizado.ipynb`)
+3. Generar `reportes/contraste_regional.md` con datos reales (el generador ya existe)
+4. K-Means reencuadrado como fenotipado clínico (no solo clustering base)
 5. Dashboard Streamlit orientado al médico general
 
 ---
@@ -276,17 +276,17 @@ class EvaluadorClinico:
 
 ### 2.6 Tickets de trabajo Sprint 2
 
-| ID | Tarea | Responsable sugerido | Prioridad | Dependencia |
-|---|---|---|---|---|
-| S2-01 | Descargar dataset CDC BRFSS 2015 de Kaggle → `datos/brutos/` | DevOps / ML Eng | 🔴 CRÍTICA | Ninguna |
-| S2-02 | Crear `notebooks/01_eda_regionalizado.ipynb` con estructura de bloques 1–6 | Data Scientist | 🔴 CRÍTICA | S2-01 |
-| S2-03 | Implementar `entrenamiento/preprocesador.py` con ColumnTransformer | ML Engineer | 🔴 CRÍTICA | S2-01 |
-| S2-04 | Extender `ComparadorModelos` con SVM, GBM, MLP usando Pipeline sklearn | ML Engineer | 🔴 CRÍTICA | S2-03 |
-| S2-05 | Crear `entrenamiento/evaluador.py` con métricas clínicas + gráficas | Data Scientist | 🟡 ALTA | S2-04 |
-| S2-06 | Ampliar `entrenamiento/pipeline.py` para serializar Pipeline completo (preprocesador+modelo) | ML Engineer | 🟡 ALTA | S2-03, S2-04 |
-| S2-07 | Añadir `pruebas/test_preprocesador.py` — verifica que no hay data leakage en Pipeline | QA | 🟡 ALTA | S2-03 |
-| S2-08 | Ampliar `pruebas/test_cargador.py` con análisis de distribución y detección de desbalance | QA | 🟢 MEDIA | S2-01 |
-| S2-09 | Guardar dataset procesado en `datos/procesados/` formato Parquet | ML Engineer | 🟢 MEDIA | S2-03 |
-| S2-10 | Documentar comparativa distribucional CDC↔ENSANUT en `reportes/contraste_regional.md` | Data Scientist | 🟢 MEDIA | S2-02 |
+| ID | Tarea | Responsable sugerido | Prioridad | Dependencia | Estado actual | Hecho hasta ahora |
+|---|---|---|---|---|---|---|
+| S2-01 | Descargar dataset CDC BRFSS 2015 vía UCI/Kaggle → `datos/brutos/` | DevOps / ML Eng | 🔴 CRÍTICA | Ninguna | 🟡 PARCIAL | Implementado `entrenamiento/descargador_dataset.py` + dependencia `ucimlrepo` + pruebas; falta persistir dataset real en `datos/brutos/` dentro del repo |
+| S2-02 | Crear `notebooks/01_eda_regionalizado.ipynb` con estructura de bloques 1–6 | Data Scientist | 🔴 CRÍTICA | S2-01 | ⬜ PENDIENTE | Aún no existe carpeta `notebooks/` ni notebook en el repositorio |
+| S2-03 | Implementar `entrenamiento/preprocesador.py` con ColumnTransformer | ML Engineer | 🔴 CRÍTICA | S2-01 | ✅ COMPLETADO | `ConstructorPreprocesador` creado con continuas/binarias/ordinales y soporte de fenotipo |
+| S2-04 | Extender `ComparadorModelos` con SVM, GBM, MLP usando Pipeline sklearn | ML Engineer | 🔴 CRÍTICA | S2-03 | ✅ COMPLETADO | `ComparadorModelos` ya entrena `svm`, `arbol`, `gbm`, `mlp` con CV ROC-AUC |
+| S2-05 | Crear `entrenamiento/evaluador.py` con métricas clínicas + gráficas | Data Scientist | 🟡 ALTA | S2-04 | ✅ COMPLETADO | `EvaluadorClinico` implementado con métricas, curvas ROC/PR, calibración y comparativa Markdown |
+| S2-06 | Ampliar `entrenamiento/pipeline.py` para serializar Pipeline completo (preprocesador+modelo) | ML Engineer | 🟡 ALTA | S2-03, S2-04 | ✅ COMPLETADO | Pipeline guarda modelo versionado + alias final, evalúa modelos y persiste JSON de métricas |
+| S2-07 | Añadir `pruebas/test_preprocesador.py` — verifica que no hay data leakage en Pipeline | QA | 🟡 ALTA | S2-03 | ✅ COMPLETADO | Suite de pruebas específica agregada y pasando |
+| S2-08 | Ampliar `pruebas/test_cargador.py` con análisis de distribución y detección de desbalance | QA | 🟢 MEDIA | S2-01 | ✅ COMPLETADO | Casos de desbalance, distribución, separación X/y y persistencia Parquet agregados |
+| S2-09 | Guardar dataset procesado en `datos/procesados/` formato Parquet | ML Engineer | 🟢 MEDIA | S2-03 | 🟡 PARCIAL | Existe `CargadorDatos.persistir_procesado()`, pero no hay artefacto Parquet versionado en repo |
+| S2-10 | Documentar comparativa distribucional CDC↔ENSANUT en `reportes/contraste_regional.md` | Data Scientist | 🟢 MEDIA | S2-02 | 🟡 PARCIAL | Existe `reportes/generar_contraste_regional.py`; falta ejecutar con dataset real y publicar el `.md` resultante |
 
 ---
