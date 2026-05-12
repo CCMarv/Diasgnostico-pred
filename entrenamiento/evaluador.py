@@ -26,7 +26,7 @@ class EvaluadorClinico:
     def calcular_metricas(self, y_verdadero: np.ndarray, y_prob: np.ndarray, umbral: float = 0.5) -> dict[str, float]:
         y_pred = (y_prob >= umbral).astype(int)
         tn, fp, fn, tp = confusion_matrix(y_verdadero, y_pred, labels=[0, 1]).ravel()
-        especificidad = float(tn / (tn + fp)) if (tn + fp) else float("nan")
+        especificidad = float(tn / (tn + fp)) if (tn + fp) > 0 else float("nan")
 
         metricas = {
             "accuracy": float(accuracy_score(y_verdadero, y_pred)),
