@@ -3,8 +3,6 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import logging
 from pathlib import Path
-from typing import Final
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -44,6 +42,10 @@ class EvaluadorClinico:
     Propósito:
     Calcular, graficar y persistir métricas clínicas de clasificación binaria.
     """
+    _FIGSIZE_CURVAS = (12, 5)
+    _FIGSIZE_CALIBRACION = (6, 6)
+    _DPI_GRAFICAS = 150
+    _N_BINS_CALIBRACION = 10
 
     def calcular_metricas(
         self,
@@ -86,7 +88,7 @@ class EvaluadorClinico:
         auc_roc = roc_auc_score(y_verdadero, y_prob)
         auc_pr = average_precision_score(y_verdadero, y_prob)
 
-        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        fig, axes = plt.subplots(1, 2, figsize=self._FIGSIZE_CURVAS)
 
         axes[0].plot(fpr, tpr, label=f"{nombre_modelo} (AUC={auc_roc:.3f})")
         axes[0].plot([0, 1], [0, 1], linestyle="--", color="gray", label="Referencia")
@@ -104,7 +106,7 @@ class EvaluadorClinico:
         axes[1].legend(loc="lower left")
 
         fig.tight_layout()
-        fig.savefig(ruta, dpi=150)
+        fig.savefig(ruta, dpi=self._DPI_GRAFICAS)
         plt.close(fig)
 
     def comparar_modelos(self, resultados: list[ResultadoEvaluacion]) -> pd.DataFrame:
@@ -138,11 +140,16 @@ class EvaluadorClinico:
         y_prob: np.ndarray,
         nombre_modelo: str,
     ) -> None:
-        prob_pred, prob_true = calibration_curve(y_verdadero, y_prob, n_bins=10, strategy="uniform")
+        prob_pred, prob_true = calibration_curve(
+            y_verdadero,
+            y_prob,
+            n_bins=self._N_BINS_CALIBRACION,
+            strategy="uniform",
+        )
         ruta = REPORTES_DIR / f"calibracion_{nombre_modelo}.png"
         ruta.parent.mkdir(parents=True, exist_ok=True)
 
-        fig, ax = plt.subplots(figsize=(6, 6))
+        fig, ax = plt.subplots(figsize=self._FIGSIZE_CALIBRACION)
         ax.plot([0, 1], [0, 1], linestyle="--", color="gray", label="Calibración perfecta")
         ax.plot(prob_pred, prob_true, marker="o", label=nombre_modelo)
         ax.set_xlabel("Probabilidad predicha")
@@ -150,7 +157,7 @@ class EvaluadorClinico:
         ax.set_title(f"Curva de calibración - {nombre_modelo}")
         ax.legend(loc="upper left")
         fig.tight_layout()
-        fig.savefig(ruta, dpi=150)
+        fig.savefig(ruta, dpi=self._DPI_GRAFICAS)
         plt.close(fig)
 
     @staticmethod

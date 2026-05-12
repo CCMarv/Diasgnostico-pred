@@ -14,6 +14,8 @@ from config import (
 )
 
 _LOG = logging.getLogger(__name__)
+_UMBRAL_DESBALANCE_MODERADO = 5.0
+_UMBRAL_DESBALANCE_CRITICO = 10.0
 
 
 class CargadorDatos:
@@ -107,9 +109,9 @@ class CargadorDatos:
         minoritaria = min(n0, n1)
         ratio = float(mayoritaria / minoritaria) if minoritaria > 0 else float("inf")
 
-        if ratio > 10:
+        if ratio > _UMBRAL_DESBALANCE_CRITICO:
             recomendacion = "smote"
-        elif ratio > 5:
+        elif ratio > _UMBRAL_DESBALANCE_MODERADO:
             recomendacion = "class_weight"
         else:
             recomendacion = "submuestreo"

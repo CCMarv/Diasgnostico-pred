@@ -19,6 +19,7 @@ Firma pública:
 """
 
 _LOG = logging.getLogger(__name__)
+# BRFSS 2015 completo reporta ~253k filas; usamos 200k como umbral mínimo de integridad.
 _MIN_FILAS_VALIDAS = 200_000
 
 

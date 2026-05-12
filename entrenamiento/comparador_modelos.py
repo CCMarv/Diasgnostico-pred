@@ -17,6 +17,7 @@ from config import MODELOS_SUPERVISADOS, SEMILLA_ALEATORIA
 from entrenamiento.preprocesador import ConstructorPreprocesador
 
 CLUSTERS_POR_DEFECTO: Final[int] = 3
+_N_SPLITS_VALIDACION: Final[int] = 5
 
 
 @dataclass(slots=True)
@@ -86,7 +87,7 @@ class ComparadorModelos:
         if desconocidos:
             raise ValueError(f"Modelos desconocidos solicitados: {desconocidos}")
 
-        cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEMILLA_ALEATORIA)
+        cv = StratifiedKFold(n_splits=_N_SPLITS_VALIDACION, shuffle=True, random_state=SEMILLA_ALEATORIA)
         resultados: list[ResultadoModelo] = []
 
         for nombre in modelos_objetivo:

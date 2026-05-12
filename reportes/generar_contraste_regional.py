@@ -17,6 +17,8 @@ ENSANUT_REFS = {
     "Veggies": 0.340,
     "HvyAlcoholConsump": 0.076,
 }
+_UMBRAL_SESGO_BAJO = 10.0
+_UMBRAL_SESGO_MEDIO = 30.0
 
 
 def _tabla_a_markdown(tabla: pd.DataFrame) -> str:
@@ -38,9 +40,9 @@ def _tabla_a_markdown(tabla: pd.DataFrame) -> str:
 
 
 def _clasificar_sesgo(sesgo_pct: float) -> str:
-    if sesgo_pct < 10:
+    if sesgo_pct < _UMBRAL_SESGO_BAJO:
         return "bajo"
-    if sesgo_pct <= 30:
+    if sesgo_pct <= _UMBRAL_SESGO_MEDIO:
         return "medio"
     return "alto"
 
