@@ -172,9 +172,9 @@ MARGEN_INCERTIDUMBRE = 0.05  # ±5% de un umbral → advertencia clínica
 
 | Tarea | Estado |
 |---|---|
-| Descargar e integrar el CSV `diabetes_binary_health_indicators_BRFSS2015.csv` en `datos/brutos/` | ⬜ |
+| Descargar e integrar el CSV `diabetes_binary_health_indicators_BRFSS2015.csv` en `datos/brutos/` | ✅ |
 | Ampliar `CargadorDatos` con análisis de distribución por columna | ⬜ |
-| Implementar imputación de valores faltantes (mediana para BMI, moda para binarias) | ⬜ |
+| Implementar imputación de valores faltantes (mediana para BMI, moda para binarias) | ✅ |
 | Detectar y documentar el desbalance de clase (`Diabetes_binary`) | ⬜ |
 | Añadir soporte para sobremuestreo (SMOTE) o submuestreo en el cargador | ⬜ |
 | Implementar partición con validación cruzada estratificada (`StratifiedKFold`) | ⬜ |
