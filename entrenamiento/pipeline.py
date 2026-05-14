@@ -132,7 +132,7 @@ def ejecutar_pipeline(
 
 
 def construir_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Pipeline de entrenamiento diabetes-ia-mx")
+    parser = argparse.ArgumentParser(description="Pipeline de entrenamiento Diasgnostico-pred")
     parser.add_argument("--modo", choices=["clasificacion", "clustering"], default="clasificacion")
     parser.add_argument("--dataset", type=Path, default=None)
     parser.add_argument("--salida-modelo", type=Path, default=RUTA_MODELO_FINAL)
