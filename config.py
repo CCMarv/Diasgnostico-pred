@@ -62,7 +62,9 @@ MODELOS_DIR: Final[Path] = ConfiguracionRutas.DIR_MODELOS
 REPORTES_DIR: Final[Path] = ConfiguracionRutas.DIR_REPORTES
 
 NOMBRE_DATASET: Final[str] = "diabetes_binary_health_indicators_BRFSS2015.csv"
+NOMBRE_DATASET_UCI_ID: Final[int] = 891
 RUTA_DATASET_PREDETERMINADA: Final[Path] = DATOS_BRUTOS_DIR / NOMBRE_DATASET
+RUTA_DATASET_PROCESADO: Final[Path] = DATOS_PROCESADOS_DIR / "dataset_procesado.parquet"
 
 COLUMNAS_CDC: Final[tuple[str, ...]] = (
     "HighBP",
@@ -91,6 +93,8 @@ COLUMNAS_CDC: Final[tuple[str, ...]] = (
 COLUMNA_OBJETIVO: Final[str] = "Diabetes_binary"
 SEMILLA_ALEATORIA: Final[int] = 42
 PROPORCION_PRUEBA: Final[float] = 0.2
+MODELOS_SUPERVISADOS: Final[tuple[str, ...]] = ("svm", "arbol", "gbm", "mlp")
+UMBRAL_MINIMO_AUC: Final[float] = 0.75
 NOMBRE_MODELO_FINAL: Final[str] = ConfiguracionRutas.RUTA_MODELO.name
 RUTA_MODELO_FINAL: Final[Path] = ConfiguracionRutas.RUTA_MODELO
 RUTA_REPORTE_METRICAS: Final[Path] = ConfiguracionRutas.DIR_REPORTES / ConfiguracionRutas.NOMBRE_REPORTE
