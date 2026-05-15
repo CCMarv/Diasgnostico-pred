@@ -39,6 +39,19 @@ ni `config.py` salvo para agregar constantes nuevas compatibles.**
 
 ---
 
+## Reglas de refactorización y compatibilidad
+
+Cuando se realicen refactorizaciones para alinear la base de código con `docs/implementacion_modelos`, aplicar las siguientes reglas adicionales:
+
+- Mantener sin cambios las **firmas públicas** de los endpoints y clases críticas (`api/esquemas.py`, `inferencia/predictor.py`, `config.py`).
+- Los refactors deben dividirse en commits pequeños y atómicos con tests que verifiquen compatibilidad.
+- Si una implementación concreta no es técnicamente recomendable cambiar (por razones de rendimiento, compatibilidad o pruebas), no la modifiques: añade un comentario en el código explicando la decisión arquitectónica y referencia este archivo.
+- Documentar en el PR el ticket del `docs/ROADMAP.md` asociado al refactor.
+
+Estas reglas complementan las existentes y garantizan que las mejoras no rompan el contrato con la API ni los tests de integración.
+
+---
+
 ## ESTADO REAL DE AVANCE (actualizado: 2026-05-14)
 
 ### Sprint 2
@@ -46,7 +59,7 @@ ni `config.py` salvo para agregar constantes nuevas compatibles.**
 | Ticket | Estado | Evidencia actual |
 |---|---|---|
 | S2-01 Descargar dataset | ✅ Completado | Dataset descargado en `datos/brutos/` usando `entrenamiento/descargador_dataset.py`  |
-| S2-02 Notebook EDA | ⬜ Parcial | No existe `notebooks/01_eda_regionalizado.ipynb` |
+| S2-02 Notebook EDA | ✅ Completado | Notebook creado en `notebooks/01_eda_regionalizado.ipynb` |
 | S2-03 Preprocesador | ✅ Completado | `entrenamiento/preprocesador.py` implementado |
 | S2-04 Modelos supervisados | ✅ Completado | `ComparadorModelos` ya incluye `svm`, `arbol`, `gbm`, `mlp` |
 | S2-05 Evaluador clínico | ✅ Completado | `entrenamiento/evaluador.py` implementado |
