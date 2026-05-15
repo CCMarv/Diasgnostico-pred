@@ -1,138 +1,340 @@
-# Diasgnostico-pred
+# diasgnostico-pred 🩺
 
-Proyecto de diagnóstico predictivo de diabetes con arquitectura modular en español. El objetivo es cumplir la rúbrica académica por niveles y dejar claro qué parte del proyecto hace cada cosa, dónde se implementan los modelos, cómo se ajustan sus hiperparámetros y dónde se guardan los resultados.
+Sistema modular de predicción de riesgo de diabetes tipo 2 mediante API REST. Entrena y despliega modelos de machine learning supervisado sobre el dataset CDC BRFSS 2015, con contextualización epidemiológica para población mexicana (IMSS / ENSANUT 2022).
 
-## Objetivo por nivel
+**Versión:** 0.1.0 | **Python:** ≥ 3.11 | **Licencia:** MIT
 
-### Nivel Básico  
-Requisito mínimo del proyecto.
+---
 
-- Pipeline completo con 3 modelos supervisados.
-- Preprocessing básico y reproducible.
-- Métricas de evaluación estándar.
+## Descripción del proyecto
 
-### Nivel Intermedio
+`diasgnostico-pred` es una herramienta de modelado predictivo y despliegue de API orientada a estimar el riesgo individual de diabetes tipo 2 a partir de 21 indicadores de salud del estudio CDC BRFSS 2015.
 
-- Todos los modelos del temario: SVM, árboles de decisión, redes neuronales y K-Means.
-- Dashboard interactivo básico.
+El sistema recibe como entrada un perfil de salud del paciente (condiciones crónicas, hábitos, datos sociodemográficos) y produce como salida una probabilidad continua y una categoría de riesgo (`bajo`, `medio`, `alto`) con advertencia clínica cuando el resultado cae en zona de incertidumbre.
 
-### Nivel Avanzado
+Está diseñado para investigadores de salud pública y equipos de desarrollo que necesiten un prototipo desplegable de tamizaje preventivo, sin exponer datos personales identificables. La arquitectura permite sustituir el dataset de entrenamiento o el modelo subyacente sin modificar la capa de inferencia ni la API.
 
-- Sistema en producción mediante API.
-- Comparativa con papers académicos.
+---
 
-## Dónde vive cada parte
+## Características principales
 
-| Componente | Qué resuelve | Archivo principal | Resultado esperado |
-|---|---|---|---|
-| Carga y validación de datos | Leer el dataset CDC y verificar columnas y desbalance | [entrenamiento/cargador_datos.py](entrenamiento/cargador_datos.py) | DataFrame limpio y separación `X/y` |
-| Preprocesamiento | Imputación, escalado y codificación por tipo de variable | [entrenamiento/preprocesador.py](entrenamiento/preprocesador.py) | `ColumnTransformer` y `Pipeline` listos para entrenamiento |
-| Modelado supervisado | Entrenar y comparar SVM, árbol, GBM y MLP | [entrenamiento/comparador_modelos.py](entrenamiento/comparador_modelos.py) | Lista de modelos comparados con ROC-AUC |
-| Evaluación clínica | Calcular ROC-AUC, PR-AUC, sensibilidad, especificidad, F1 y Brier | [entrenamiento/evaluador.py](entrenamiento/evaluador.py) | Tabla comparativa y gráficas de desempeño |
-| Orquestación del entrenamiento | Ejecutar split, entrenamiento, evaluación y guardado | [entrenamiento/pipeline.py](entrenamiento/pipeline.py) | Modelo final `.joblib` y reporte de métricas |
-| Inferencia | Cargar el modelo serializado y predecir | [inferencia/predictor.py](inferencia/predictor.py) | Predicción clínica con probabilidad y clase |
-| API productiva | Exponer `/salud` y `/predecir` | [api/main.py](api/main.py) | Servicio FastAPI ejecutable |
-| Notebook EDA | Exploración regionalizada CDC vs. ENSANUT | [notebooks/01_eda_regionalizado.ipynb](notebooks/01_eda_regionalizado.ipynb) | Gráficas, contrastes y conclusiones del EDA |
+- Entrena y compara cuatro modelos supervisados (SVM, árbol de decisión, Gradient Boosting, MLP) dentro de un `sklearn.Pipeline` que incluye preprocesamiento, eliminando el riesgo de *data leakage*.
+- Expone los resultados a través de una API REST FastAPI con validación clínica de entradas (rangos, coherencia entre variables) y modo degradado automático cuando el modelo no está disponible.
+- Mapea los 21 campos del dataset CDC BRFSS a nombres en español sin PII, con validación de rangos clínicamente plausibles vía Pydantic v2.
+- Serializa el pipeline completo (preprocesador + estimador) en un único archivo `.joblib`, garantizando reproducibilidad entre entrenamiento e inferencia.
+- Genera métricas clínicas completas: ROC-AUC, PR-AUC, sensibilidad, especificidad, F1, Brier Score, curvas de calibración y tabla comparativa en Markdown.
+- Incluye análisis de sesgo distribucional CDC ↔ ENSANUT 2022 para documentar la transferibilidad del modelo a población mexicana.
+- Emite advertencia automática cuando la probabilidad predicha cae dentro del margen de incertidumbre (±5% de cualquier umbral), indicando la necesidad de evaluación clínica adicional.
 
-## Modelos, hiperparámetros y dónde se ajustan
+---
 
-La implementación de modelos está centralizada en [entrenamiento/comparador_modelos.py](entrenamiento/comparador_modelos.py). Cada modelo se entrena dentro de un `Pipeline` que ya incluye el preprocesamiento, para evitar data leakage.
+## Requisitos del sistema
 
-| Modelo | Qué aporta | Hiperparámetros clave | Resultado que produce |
-|---|---|---|---|
-| SVM | Buen separador en espacios con variables mixtas | `kernel='rbf'`, `C`, `gamma`, `class_weight='balanced'`, `probability=True` | Predicción con probabilidad y ROC-AUC comparativa |
-| Árbol de decisión | Interpretabilidad y reglas clínicas | `max_depth=5`, `ccp_alpha=0.0`, `class_weight='balanced'` | Reglas simples y comparables contra otros modelos |
-| Gradient Boosting | Mejor rendimiento con ensamble de árboles | `n_estimators=200`, `max_depth=4`, `learning_rate=0.05` | Modelo fuerte para comparar contra literatura |
-| MLP | Captura relaciones no lineales más complejas | `hidden_layer_sizes=(64, 32)`, `max_iter=500`, `early_stopping=True` | Red neuronal base dentro del mismo Pipeline |
-| K-Means | Agrupación no supervisada para fenotipado | `n_clusters=3`, `random_state=42` | Inercia y agrupaciones clínicas exploratorias |
+- Python 3.11 o superior
+- Sistema operativo: macOS, Linux o WSL2 en Windows
+- Memoria RAM recomendada: 8 GB (el dataset completo tiene ~253 000 filas)
+- Sin requerimientos de GPU; todos los modelos corren en CPU
 
-Los ajustes del catálogo de modelos están en [entrenamiento/comparador_modelos.py](entrenamiento/comparador_modelos.py). El preprocesamiento que alimenta esos modelos está en [entrenamiento/preprocesador.py](entrenamiento/preprocesador.py).
+Dependencias principales declaradas en `pyproject.toml`:
 
-## Qué entrega cada módulo
+| Paquete | Versión mínima | Rol |
+|---|---|---|
+| `fastapi` | 0.112.0 | Framework API REST |
+| `uvicorn` | 0.30.0 | Servidor ASGI |
+| `pydantic` | 2.8.0 | Validación de entradas y esquemas |
+| `pandas` | 2.2.0 | Manipulación del dataset |
+| `scikit-learn` | 1.5.0 | Modelos, preprocesamiento, métricas |
+| `joblib` | 1.4.0 | Serialización de pipelines |
+| `matplotlib` | 3.9.0 | Gráficas de evaluación clínica |
+| `pyarrow` | 17.0.0 | Almacenamiento Parquet |
+| `ucimlrepo` | 0.0.3 | Descarga automática del dataset |
+| `pytest` | 8.2.0 | Suite de pruebas (dev) |
+| `httpx` | 0.27.0 | Cliente HTTP para pruebas de API (dev) |
 
-### `entrenamiento/preprocesador.py`
+Extras opcionales: `pip install -e .[dashboard]` para Streamlit, `pip install -e .[shap]` para explicabilidad con SHAP.
 
-Define el `ColumnTransformer` que separa variables en:
+---
 
-- Continuas: `BMI`, `MentHlth`, `PhysHlth`.
-- Binarias: `HighBP`, `HighChol`, `CholCheck`, `Smoker`, `Stroke`, `HeartDiseaseorAttack`, `PhysActivity`, `Fruits`, `Veggies`, `HvyAlcoholConsump`, `AnyHealthcare`, `NoDocbcCost`, `DiffWalk`, `Sex`.
-- Ordinales: `GenHlth`, `Age`, `Education`, `Income`.
-
-Su función es dejar los datos listos para entrenar sin mezclar tipos de variables ni filtrar información del conjunto de prueba.
-
-### `entrenamiento/comparador_modelos.py`
-
-Contiene el catálogo de modelos y sus parámetros. Aquí se decide:
-
-- qué modelos se entrenan,
-- cómo se comparan,
-- con qué validación cruzada,
-- y cuál es el mejor según ROC-AUC.
-
-### `entrenamiento/evaluador.py`
-
-Calcula las métricas clínicas y genera los artefactos de análisis:
-
-- ROC-AUC,
-- PR-AUC,
-- sensibilidad,
-- especificidad,
-- F1,
-- Brier score,
-- matriz de confusión,
-- curva ROC,
-- curva Precision-Recall,
-- curva de calibración.
-
-### `entrenamiento/pipeline.py`
-
-Es el orquestador. Ejecuta el flujo completo:
-
-1. carga datos,
-2. hace split entrenamiento/prueba,
-3. entrena modelos,
-4. evalúa resultados,
-5. guarda el mejor `.joblib`,
-6. escribe un reporte JSON con métricas.
-
-### `api/main.py`
-
-Expone el modelo entrenado en producción.
-
-- `GET /salud`: verifica si el modelo está disponible.
-- `POST /predecir`: recibe un paciente y devuelve clase de riesgo y probabilidad.
-
-## Dónde quedan los resultados
-
-Los artefactos importantes del entrenamiento quedan en estas rutas:
-
-- Modelo final: `modelos/modelo_diabetes_v1.joblib`.
-- Modelo versionado por corrida: `modelos/modelo_diabetes_vYYYYMMDD_HHMMSS.joblib`.
-- Reporte principal de métricas: `reportes/metricas_sprint1.json`.
-- Comparativa de modelos: `reportes/comparativa_modelos.md`.
-- Curvas ROC y Precision-Recall: `reportes/curvas_<modelo>.png`.
-- Curvas de calibración: `reportes/calibracion_<modelo>.png`.
-- Dataset procesado: `datos/procesados/dataset_procesado.parquet`.
-
-## Qué debe hacer cada nivel de la rúbrica
-
-### Para cumplir el nivel básico
-
-Hay que cerrar el flujo mínimo de entrenamiento en [entrenamiento/pipeline.py](entrenamiento/pipeline.py): preprocesamiento, 3 modelos, comparación y métricas estándar. El modelo final debe quedar serializado y ser compatible con [inferencia/predictor.py](inferencia/predictor.py).
-
-### Para cumplir el nivel intermedio
-
-Además del flujo básico, deben estar presentes todos los modelos del temario. En este repositorio eso se traduce en el catálogo de [entrenamiento/comparador_modelos.py](entrenamiento/comparador_modelos.py), donde ya están SVM, árbol de decisión, GBM, MLP y K-Means.
-
-### Para cumplir el nivel avanzado
-
-La API ya cubre la parte de producción en [api/main.py](api/main.py). Lo que queda es mantener coherencia entre el modelo entrenado, el reporte de métricas y la comparación con literatura académica y contexto regional.
-
-## Ejecución local
+## Instalación rápida
 
 ```bash
-python -m pip install -e .[dev]
+git clone https://github.com/tu-usuario/diasgnostico-pred.git
+cd diasgnostico-pred
+python -m venv venv
+source venv/bin/activate        # En Windows: venv\Scripts\activate
+pip install -e .[dev]
+```
+
+Verificar que la instalación es correcta:
+
+```bash
 pytest
+# Se esperan todas las pruebas en verde; el modelo real no es necesario para los tests de contrato.
+```
+
+---
+
+## Uso básico
+
+### 1. Descargar el dataset y entrenar el modelo
+
+```bash
+python -m entrenamiento.pipeline --modo clasificacion
+```
+
+Esto descarga el dataset CDC BRFSS 2015 desde UCI ML Repository (si no existe), ejecuta el pipeline completo y guarda:
+
+- `modelos/modelo_diabetes_v1.joblib` — pipeline serializado listo para inferencia
+- `reportes/metricas_sprint1.json` — métricas de todos los modelos evaluados
+- `reportes/comparativa_modelos.md` — tabla comparativa en Markdown
+- `reportes/curvas_<modelo>.png` — curvas ROC y Precision-Recall del mejor modelo
+
+Argumentos disponibles:
+
+| Argumento | Descripción | Ejemplo |
+|---|---|---|
+| `--modo` | `clasificacion` o `clustering` | `--modo clasificacion` |
+| `--modelos` | Modelos a entrenar, separados por coma | `--modelos gbm,mlp` |
+| `--dataset` | Ruta alternativa al CSV | `--dataset datos/brutos/mi_csv.csv` |
+| `--salida-modelo` | Ruta de destino del `.joblib` | `--salida-modelo modelos/v2.joblib` |
+
+### 2. Levantar la API
+
+```bash
 uvicorn api.main:app --reload
 ```
 
+La API inicia en `http://localhost:8000`. Si el modelo no existe, el servicio arranca en **modo degradado**: responde en `/salud` con `estado: degradado` y retorna HTTP 503 en `/predecir`.
+
+---
+
+## Ejemplos de uso
+
+### Verificar el estado del servicio
+
+```bash
+curl http://localhost:8000/salud
+```
+
+```json
+{
+  "estado": "operativo",
+  "version": "0.1.0",
+  "detalles": {
+    "modelo_cargado": true,
+    "ruta_modelo": "modelo_diabetes_v1.joblib",
+    "timestamp_servidor": "2026-05-14T20:30:00+00:00"
+  }
+}
+```
+
+### Obtener una predicción de riesgo
+
+```bash
+curl -X POST http://localhost:8000/predecir \
+  -H "Content-Type: application/json" \
+  -d '{
+    "presion_alta": 1,
+    "colesterol_alto": 1,
+    "chequeo_colesterol": 1,
+    "imc": 34.0,
+    "fumador": 0,
+    "derrame_cerebral": 0,
+    "enfermedad_corazon": 0,
+    "actividad_fisica": 0,
+    "consume_fruta": 0,
+    "consume_verdura": 1,
+    "consumo_alcohol_alto": 0,
+    "tiene_cobertura_medica": 1,
+    "sin_medico_por_costo": 0,
+    "salud_general": 4,
+    "salud_mental": 5,
+    "salud_fisica": 10,
+    "dificultad_caminar": 0,
+    "sexo": 1,
+    "edad": 8,
+    "educacion": 4,
+    "ingreso": 3
+  }'
+```
+
+```json
+{
+  "categoria_riesgo": "alto",
+  "confianza": 0.71,
+  "version": "0.1.0",
+  "tiempo_ms": 12,
+  "advertencia": null
+}
+```
+
+### Ejemplo con zona de incertidumbre
+
+Cuando la probabilidad cae cerca de un umbral (±5%), la API emite una advertencia clínica:
+
+```json
+{
+  "categoria_riesgo": "medio",
+  "confianza": 0.64,
+  "version": "0.1.0",
+  "tiempo_ms": 9,
+  "advertencia": "Resultado en zona de incertidumbre; requiere evaluación clínica."
+}
+```
+
+### Usar el predictor directamente en Python
+
+```python
+import pandas as pd
+from inferencia.predictor import PredictorDiabetes
+
+predictor = PredictorDiabetes()
+predictor.cargar_modelo()
+
+entrada = pd.DataFrame([{
+    "HighBP": 1, "HighChol": 1, "CholCheck": 1, "BMI": 34.0,
+    "Smoker": 0, "Stroke": 0, "HeartDiseaseorAttack": 0,
+    "PhysActivity": 0, "Fruits": 0, "Veggies": 1,
+    "HvyAlcoholConsump": 0, "AnyHealthcare": 1, "NoDocbcCost": 0,
+    "GenHlth": 4, "MentHlth": 5, "PhysHlth": 10,
+    "DiffWalk": 0, "Sex": 1, "Age": 8, "Education": 4, "Income": 3
+}])
+
+resultado = predictor.predecir(entrada)
+print(resultado)
+# {'probabilidad': 0.71, 'clase': 1, 'version': '0.1.0', 'tiempo_ms': 12}
+```
+
+---
+
+## Arquitectura y organización del código
+
+```text
+diasgnostico-pred/
+├── api/
+│   ├── config.py           # Reexporta constantes de config.py para la capa API
+│   ├── esquemas.py         # Modelos Pydantic: DatosPaciente, RespuestaPrediccion, RespuestaSalud
+│   └── main.py             # Endpoints FastAPI: /salud y /predecir
+├── entrenamiento/
+│   ├── cargador_datos.py   # Carga, limpieza, análisis de desbalance y persistencia Parquet
+│   ├── comparador_modelos.py # Catálogo de modelos (SVM, árbol, GBM, MLP, K-Means) y comparación
+│   ├── evaluador.py        # Métricas clínicas, curvas ROC/PR/calibración, tabla comparativa
+│   ├── pipeline.py         # Orquestador CLI: split → entrenamiento → evaluación → serialización
+│   └── preprocesador.py    # ColumnTransformer por tipo de variable (continua, binaria, ordinal)
+├── inferencia/
+│   └── predictor.py        # PredictorDiabetes: carga .joblib, valida columnas, mide latencia
+├── modelos/
+│   └── .gitkeep            # Directorio para artefactos .joblib (excluidos de git)
+├── datos/
+│   ├── brutos/             # CSV fuente CDC BRFSS 2015 (excluido de git)
+│   └── procesados/         # Dataset limpio en formato Parquet
+├── reportes/               # Métricas JSON, tablas Markdown, gráficas PNG
+├── notebooks/
+│   └── 01_eda_regionalizado.ipynb  # EDA con contraste CDC ↔ ENSANUT 2022
+├── pruebas/                # Suite de pruebas de contrato (API, cargador, predictor, preprocesador)
+├── config.py               # Fuente única de constantes: rutas, umbrales, columnas CDC, semilla
+├── pyproject.toml          # Dependencias y configuración de pytest
+└── .env.example            # Variables de entorno documentadas
+```
+
+**Capas del sistema:**
+
+- `config.py` — Fuente única de verdad para todas las constantes. Ningún módulo define *magic strings*.
+- `entrenamiento/` — Pipeline de datos y modelado. Todo lo que ocurre antes de serializar el modelo.
+- `inferencia/` — Carga el artefacto serializado y ejecuta predicciones. No tiene dependencia de `entrenamiento/`.
+- `api/` — Expone la inferencia como servicio HTTP. No conoce los detalles del entrenamiento.
+
+---
+
+## Tests y garantías de calidad
+
+Las pruebas verifican contratos de interfaz, no implementaciones internas:
+
+```bash
+pytest                   # Ejecuta toda la suite
+pytest -q --tb=short     # Salida compacta con trazas de error
+```
+
+| Archivo de prueba | Qué verifica |
+|---|---|
+| `pruebas/test_api.py` | Códigos HTTP, mapeo de campos, modo degradado |
+| `pruebas/test_predictor.py` | Compatibilidad con modelos con y sin `predict_proba` |
+| `pruebas/test_cargador.py` | Carga, limpieza, detección de desbalance, persistencia Parquet |
+| `pruebas/test_preprocesador.py` | Ausencia de *data leakage*, columnas binarias sin escalar, orden de ordinales |
+
+Los tests no requieren el dataset real ni un modelo entrenado; usan modelos simulados y datasets sintéticos.
+
+---
+
+## Arquitectura del contrato de datos
+
+Los 21 campos públicos de la API usan nombres en español sin PII. Pydantic aplica rangos clínicamente plausibles y detecta incoherencias entre variables:
+
+| Campo público | Columna CDC | Rango permitido |
+|---|---|---|
+| `presion_alta` | `HighBP` | 0 – 1 |
+| `colesterol_alto` | `HighChol` | 0 – 1 |
+| `imc` | `BMI` | 10.0 – 80.0 |
+| `salud_general` | `GenHlth` | 1 – 5 |
+| `salud_mental` | `MentHlth` | 0 – 30 |
+| `salud_fisica` | `PhysHlth` | 0 – 30 |
+| `edad` | `Age` | 1 – 13 (grupos etarios CDC) |
+| `educacion` | `Education` | 1 – 6 |
+| `ingreso` | `Income` | 1 – 8 |
+| *(12 variables binarias restantes)* | — | 0 – 1 |
+
+Regla de coherencia clínica: `salud_fisica ≥ 20` con `dificultad_caminar = 0` es rechazado con HTTP 422.
+
+---
+
+## Tecnologías y dependencias principales
+
+- Python 3.11, scikit-learn 1.5, FastAPI 0.112, Pydantic v2
+- Dataset: CDC BRFSS 2015 (UCI ML Repository, id=891, ~253 000 filas, 21 variables + objetivo binario)
+- Serialización: `joblib` (pipeline completo preprocesador + estimador)
+- Almacenamiento procesado: Apache Parquet vía `pyarrow`
+- Servidor: Uvicorn (ASGI)
+
+---
+
+## Asunciones clave del diseño
+
+- El dataset CDC BRFSS 2015 es válido como proxy de entrenamiento para población mexicana, siempre que se declare el sesgo distribucional en variables de comportamiento y contexto socioeconómico.
+- La sensibilidad (recall de clase positiva) tiene mayor prioridad clínica que la precisión: un falso negativo tiene consecuencias más graves que un falso positivo.
+- El pipeline completo (preprocesador + estimador) se serializa como una sola unidad para garantizar que la transformación en inferencia sea idéntica a la del entrenamiento.
+- La API puede operar en modo degradado sin modelo disponible; los errores de modelo nunca derriban el servidor.
+- Ningún endpoint expone datos personales identificables (PII).
+
+---
+
+## Limitaciones conocidas
+
+- El modelo está entrenado en datos de EE. UU. (CDC BRFSS 2015); su calibración puede ser subóptima para población mexicana sin recalibración local.
+- El umbral de decisión predeterminado (`bajo < 0.33`, `alto ≥ 0.66`) está ajustado para la distribución CDC; para despliegue en contexto IMSS se recomienda reducir el umbral inferior a 0.25.
+- El dataset completo pesa ~50 MB; la descarga inicial requiere conexión a internet y puede tomar varios minutos.
+- El modo de clustering (`--modo clustering`) usa K-Means base y no está integrado al pipeline de inferencia en la versión actual.
+- No incluye autenticación por API Key ni *rate limiting* en la versión actual (pendiente Sprint 4).
+
+---
+
+## Roadmap y versiones futuras
+
+El proyecto sigue una metodología en espiral de 5 sprints. Estado actual:
+
+| Sprint | Objetivo | Estado |
+|---|---|---|
+| Sprint 1 | Arquitectura base y contratos de interfaz | ✅ Completo |
+| Sprint 2 | Pipeline de datos real y modelos supervisados | ⚠️ 8/10 tickets completos |
+| Sprint 3 | Fenotipado metabólico (K-Means) y dashboard Streamlit | ❌ Pendiente |
+| Sprint 4 | Reporte académico, Docker, CI/CD | ❌ Pendiente |
+| Sprint 5 | Observabilidad, endurecimiento y documentación final | ❌ Pendiente |
+
+Para el detalle de tickets y dependencias, consultar `docs/ROADMAP.md`.
+
+---
+
+## Licencia
+
+MIT License. Permite usar, copiar, modificar y distribuir el código para cualquier propósito, incluyendo uso comercial, siempre que se mantenga el aviso de copyright original.
+
+Este proyecto usa datos públicos del CDC BRFSS 2015 distribuidos por UCI Machine Learning Repository bajo términos de uso abierto para investigación.

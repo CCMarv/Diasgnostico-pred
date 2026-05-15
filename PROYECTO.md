@@ -1,27 +1,10 @@
-# Diasgnostico-pred
- — Documento de Diseño y Progreso del Proyecto
+# diasgnostico-pred — Documento de Diseño
 
-> **Versión del sistema:** 0.1.0  
-> **Dataset fuente:** CDC BRFSS 2015 — `diabetes_binary_health_indicators_BRFSS2015.csv`  
-> **Metodología de desarrollo:** Espiral iterativa (5 sprints)
+**Versión:** 0.1.0 | **Dataset:** CDC BRFSS 2015 | **Metodología:** Espiral iterativa, 5 sprints
 
 ---
 
-## 1. Meta final
-
-Construir un sistema modular, robusto y desplegable en producción que permita **estimar el riesgo de diabetes de una persona** a partir de 21 indicadores de salud del estudio CDC BRFSS 2015. El sistema debe:
-
-- Entregar una probabilidad continua y una categoría de riesgo (`bajo`, `medio`, `alto`) a través de una API REST.
-- Ser reproducible: cualquier desarrollador puede reclonar el repositorio, entrenar el modelo y levantar la API sin pasos manuales.
-- Ser observable: logs estructurados, métricas de latencia y un endpoint de salud (`/salud`) que refleje el estado real del servicio.
-- Ser seguro: validación estricta de entradas, manejo explícito de errores y sin exposición de datos personales (PII).
-- Contar con una suite de pruebas automatizadas que garantice que ninguna regresión llegue a producción.
-
----
-
-## 2. Lógica del diseño
-
-### 2.1 Arquitectura general
+## 1. Arquitectura del sistema
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -30,8 +13,8 @@ Construir un sistema modular, robusto y desplegable en producción que permita *
                      │ HTTP JSON
 ┌────────────────────▼────────────────────────┐
 │              api/  (FastAPI)                 │
-│  /salud  ── health check                    │
-│  /predecir ── validación → inferencia       │
+│  /salud  — verificación de salud            │
+│  /predecir — validación → inferencia        │
 │  esquemas.py  (Pydantic, mapeo ES ↔ CDC)   │
 └────────────────────┬────────────────────────┘
                      │
@@ -45,295 +28,214 @@ Construir un sistema modular, robusto y desplegable en producción que permita *
 │         entrenamiento/                       │
 │  cargador_datos.py  → limpieza CDC          │
 │  comparador_modelos.py → experimentos       │
-│  pipeline.py  → CLI orquestador             │
+│  evaluador.py → métricas clínicas           │
+│  pipeline.py  → orquestador CLI             │
 └────────────────────┬────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────┐
 │     datos/brutos/  (CSV CDC BRFSS 2015)     │
 │     modelos/       (artefactos .joblib)     │
-│     reportes/      (métricas JSON)          │
+│     reportes/      (métricas, gráficas)     │
 └─────────────────────────────────────────────┘
 ```
 
-### 2.2 Principios de diseño
+---
+
+## 2. Principios de diseño
 
 | Principio | Aplicación concreta |
 |---|---|
-| **Separación de responsabilidades** | Cuatro capas independientes: datos, entrenamiento, inferencia, API |
-| **Contrato explícito** | `config.py` centraliza todas las constantes (columnas, rutas, umbrales, semilla). Ningún módulo define "magic strings". |
-| **Español primero** | Nombres de clases, métodos, variables y endpoints en español; solo las columnas CDC permanecen en inglés (nombres oficiales del dataset). |
-| **Modo degradado** | Si el modelo `.joblib` no existe, la API responde `/salud` con `estado: degradado` en lugar de fallar en el arranque. |
-| **Incertidumbre explícita** | Si la probabilidad cae dentro de ±5% de un umbral, la respuesta incluye una advertencia clínica. |
-| **Pruebas de contrato** | Los tests verifican contratos de interfaz (tipos devueltos, códigos HTTP, mapeos de campos), no implementaciones internas. |
+| Separación de responsabilidades | Cuatro capas independientes: datos, entrenamiento, inferencia, API |
+| Contrato explícito | `config.py` centraliza todas las constantes (columnas, rutas, umbrales, semilla). Ningún módulo define *magic strings*. |
+| Español primero | Nombres de clases, métodos, variables y endpoints en español; las columnas CDC permanecen en inglés (identificadores oficiales del dataset). |
+| Modo degradado | Si el `.joblib` no existe, la API responde `/salud` con `estado: degradado` en lugar de fallar al arrancar. |
+| Incertidumbre explícita | Si la probabilidad cae dentro de ±5% de un umbral, la respuesta incluye una advertencia clínica. |
+| Pruebas de contrato | Los tests verifican contratos de interfaz (tipos devueltos, códigos HTTP, mapeos de campos), no implementaciones internas. |
+| Sin data leakage | El `ColumnTransformer`/`Pipeline` se ajusta exclusivamente sobre `X_train`. Nunca sobre `X_test` ni sobre el conjunto completo antes de partir. |
 
-### 2.3 Flujo de datos: entrenamiento → inferencia
+---
 
-```
-CSV (datos/brutos/)
-    │
-    ▼ CargadorDatos.cargar()
-DataFrame (21 columnas CDC + objetivo)
-    │
-    ▼ train_test_split (stratify, semilla=42, test=0.2)
-X_train / X_test / y_train / y_test
-    │
-    ▼ ComparadorModelos.entrenar_clasificacion()
-Lista[ResultadoModelo]
-    │
-    ▼ ComparadorModelos.seleccionar_mejor()
-mejor_modelo (sklearn estimator)
-    │
-    ▼ joblib.dump()
-modelos/modelo_diabetes.joblib  +  reportes/metricas_entrenamiento.json
-    │
-    ▼ PredictorDiabetes.cargar_modelo()  (al arrancar la API)
-PredictorDiabetes._modelo listo
-    │
-    ▼ POST /predecir  →  DatosPaciente.a_dataframe()
-probabilidad + categoría_riesgo + advertencia
-```
+## 3. Contrato de datos
 
-### 2.4 Esquema de validación de entrada
+### 3.1 Esquema de entrada de la API (21 campos públicos)
 
-Los 21 campos públicos de `DatosPaciente` están en español sin PII. Pydantic aplica rangos clínicamente plausibles:
+Los campos públicos de `DatosPaciente` usan nombres en español sin PII. Pydantic aplica rangos clínicamente plausibles.
 
-| Campo público (ES) | Columna CDC | Rango permitido |
-|---|---|---|
-| `presion_alta` | `HighBP` | 0 – 1 |
-| `colesterol_alto` | `HighChol` | 0 – 1 |
-| `chequeo_colesterol` | `CholCheck` | 0 – 1 |
-| `imc` | `BMI` | 10.0 – 80.0 |
-| `fumador` | `Smoker` | 0 – 1 |
-| `derrame_cerebral` | `Stroke` | 0 – 1 |
-| `enfermedad_corazon` | `HeartDiseaseorAttack` | 0 – 1 |
-| `actividad_fisica` | `PhysActivity` | 0 – 1 |
-| `consume_fruta` | `Fruits` | 0 – 1 |
-| `consume_verdura` | `Veggies` | 0 – 1 |
-| `consumo_alcohol_alto` | `HvyAlcoholConsump` | 0 – 1 |
-| `tiene_cobertura_medica` | `AnyHealthcare` | 0 – 1 |
-| `sin_medico_por_costo` | `NoDocbcCost` | 0 – 1 |
-| `salud_general` | `GenHlth` | 1 – 5 |
-| `salud_mental` | `MentHlth` | 0 – 30 |
-| `salud_fisica` | `PhysHlth` | 0 – 30 |
-| `dificultad_caminar` | `DiffWalk` | 0 – 1 |
-| `sexo` | `Sex` | 0 – 1 |
-| `edad` | `Age` | 1 – 13 (grupos etarios CDC) |
-| `educacion` | `Education` | 1 – 6 |
-| `ingreso` | `Income` | 1 – 8 |
+| Campo público (ES) | Columna CDC | Rango permitido | Interpretación clínica |
+|---|---|---|---|
+| `presion_alta` | `HighBP` | 0 – 1 | Diagnóstico previo de HTA |
+| `colesterol_alto` | `HighChol` | 0 – 1 | Diagnóstico previo de dislipidemia |
+| `chequeo_colesterol` | `CholCheck` | 0 – 1 | Prueba de colesterol en últimos 5 años |
+| `imc` | `BMI` | 10.0 – 80.0 | Índice de masa corporal kg/m² |
+| `fumador` | `Smoker` | 0 – 1 | ≥100 cigarrillos en su vida |
+| `derrame_cerebral` | `Stroke` | 0 – 1 | Derrame cerebral previo |
+| `enfermedad_corazon` | `HeartDiseaseorAttack` | 0 – 1 | Cardiopatía coronaria o infarto |
+| `actividad_fisica` | `PhysActivity` | 0 – 1 | Actividad física en últimos 30 días |
+| `consume_fruta` | `Fruits` | 0 – 1 | Fruta ≥1 vez al día |
+| `consume_verdura` | `Veggies` | 0 – 1 | Verdura ≥1 vez al día |
+| `consumo_alcohol_alto` | `HvyAlcoholConsump` | 0 – 1 | Consumo elevado de alcohol |
+| `tiene_cobertura_medica` | `AnyHealthcare` | 0 – 1 | Algún tipo de cobertura médica |
+| `sin_medico_por_costo` | `NoDocbcCost` | 0 – 1 | Evitó médico por costo |
+| `salud_general` | `GenHlth` | 1 – 5 | Salud autorreportada (1=excelente, 5=mala) |
+| `salud_mental` | `MentHlth` | 0 – 30 | Días de mala salud mental en el último mes |
+| `salud_fisica` | `PhysHlth` | 0 – 30 | Días de mala salud física en el último mes |
+| `dificultad_caminar` | `DiffWalk` | 0 – 1 | Dificultad para caminar o subir escaleras |
+| `sexo` | `Sex` | 0 – 1 | 0=Femenino, 1=Masculino |
+| `edad` | `Age` | 1 – 13 | Grupos etarios CDC (1=18–24, 13=80+) |
+| `educacion` | `Education` | 1 – 6 | 1=sin escolaridad, 6=universitario+ |
+| `ingreso` | `Income` | 1 – 8 | Ranking relativo de ingreso |
 
-Adicionalmente, un `@model_validator` detecta incoherencias clínicas: `salud_fisica ≥ 20` con `dificultad_caminar = 0` es rechazado con HTTP 422.
+### 3.2 Validador de coherencia clínica
 
-### 2.5 Umbrales de riesgo
+Un `@model_validator` rechaza entradas donde `salud_fisica ≥ 20` Y `dificultad_caminar = 0` (deterioro físico severo sin dificultad para caminar es clínicamente incoherente). Retorna HTTP 422.
+
+### 3.3 Umbrales de riesgo
 
 ```python
-UMBRAL_RIESGO_BAJO  = 0.33   # probabilidad < 0.33 → "bajo"
-UMBRAL_RIESGO_ALTO  = 0.66   # probabilidad ≥ 0.66 → "alto"
-MARGEN_INCERTIDUMBRE = 0.05  # ±5% de un umbral → advertencia clínica
+UMBRAL_RIESGO_BAJO   = 0.33   # probabilidad < 0.33  → "bajo"
+UMBRAL_RIESGO_ALTO   = 0.66   # probabilidad ≥ 0.66  → "alto"
+MARGEN_INCERTIDUMBRE = 0.05   # ±5% de cualquier umbral → advertencia clínica
+
+# Ajuste recomendado para despliegue en México (justificado en §5.2):
+UMBRAL_DECISION_MX   = 0.25   # umbral operativo conservador para contexto IMSS
 ```
 
 ---
 
-## 3. Sprints y metas
+## 4. Mapeo regional CDC BRFSS 2015 → IMSS/ENSANUT
 
-### Sprint 1 — Scaffolding y contratos base ✅ COMPLETADO
+### 4.1 Evaluación de transferibilidad por variable
 
-**Meta:** Establecer la arquitectura modular completa, contratos de interfaces y una suite de pruebas de contrato mínima que valide que todos los módulos "hablan entre sí" correctamente. Al final de este sprint el repositorio debe ser clonable, instalable y ejecutable, aunque sin un modelo real entrenado.
+Esta tabla es el artefacto central de regionalización. Conecta cada variable con su equivalente en PrevenIMSS y documenta el sesgo distribucional respecto a población mexicana.
 
-**Entregables comprometidos:**
+| Columna CDC | Equivalente PrevenIMSS / ENSANUT | Escala CDC | Escala IMSS | Prevalencia México (ENSANUT 2022) | Nota de transferibilidad |
+|---|---|---|---|---|---|
+| `HighBP` | "¿Le han dicho que tiene presión arterial alta?" | Binaria 0/1 | Sí/No | 30.1% adultos ≥20 años | Equivalencia directa |
+| `HighChol` | "¿Le han dicho que tiene colesterol alto?" | Binaria 0/1 | Sí/No | 19.6% adultos | Equivalencia directa |
+| `CholCheck` | "¿Se ha hecho prueba de colesterol en los últimos 5 años?" | Binaria 0/1 | Sí/No | Sin dato directo; proxy: cobertura de laboratorio IMSS | Ítem de acceso a servicios |
+| `BMI` | IMC calculado en consulta (peso/talla²) | Continua 10–80 | Continua | Sobrepeso+obesidad: 76.8% adultos. Media IMC ≈ 29.2 kg/m² | **Ajuste crítico:** distribución mexicana desplazada ~+1.5 puntos sobre CDC |
+| `Smoker` | "¿Ha fumado ≥100 cigarrillos en su vida?" | Binaria 0/1 | Sí/No | Tabaquismo: 17.6% (ENSANUT 2022) vs ~44% CDC | **Sesgo alto:** CDC sobreestima tabaquismo respecto a México |
+| `Stroke` | "¿Le han dicho que tuvo un derrame cerebral?" | Binaria 0/1 | Sí/No | 2.7% adultos ≥40 años | Equivalencia directa |
+| `HeartDiseaseorAttack` | "¿Ha tenido infarto o enfermedad cardiaca?" | Binaria 0/1 | Sí/No | 3.4% adultos (INEGI 2022) | Equivalencia directa |
+| `PhysActivity` | "¿Realizó actividad física en los últimos 30 días?" | Binaria 0/1 | Sí/No | 39.5% inactivos físicamente (ENSANUT) | Definición CDC más permisiva |
+| `Fruits` | "¿Consume fruta ≥1 vez por día?" | Binaria 0/1 | Sí/No | 42% consumo diario de fruta | Comparable |
+| `Veggies` | "¿Consume verduras ≥1 vez por día?" | Binaria 0/1 | Sí/No | 34% consumo diario de verdura | Comparable |
+| `HvyAlcoholConsump` | ">14 copas/semana (H) o >7 copas/semana (M)?" | Binaria 0/1 | Sí/No | Consumo excesivo: 7.6% (ENCODAT 2017) | Comparable con ajuste de definición |
+| `AnyHealthcare` | "¿Cuenta con seguro médico o afiliación?" | Binaria 0/1 | Sí/No | IMSS: 40%, ISSSTE: 6.9%, Bienestar: 17.5% (2022) | La fragmentación del sistema es variable clave en México |
+| `NoDocbcCost` | "¿Dejó de ir al médico en el último año por costo?" | Binaria 0/1 | Sí/No | 28.5% reporta barrera económica (ENSANUT) | Variable de acceso relevante para México |
+| `GenHlth` | "En general, su salud es… (excelente a mala)" | Ordinal 1–5 | Escala de 5 puntos | 41% reporta salud "buena o muy buena" (ENSANUT) | Escala análoga en cartilla de salud IMSS |
+| `MentHlth` | "¿Cuántos días su salud mental fue mala?" | Continua 0–30 | Días | Sin equivalente directo IMSS; proxy: PHQ-2 | Covariable de comorbilidad psiquiátrica |
+| `PhysHlth` | "¿Cuántos días tuvo problemas físicos?" | Continua 0–30 | Días | Sin equivalente directo; proxy: días de ausentismo laboral IMSS | Covariable de carga de enfermedad |
+| `DiffWalk` | "¿Tiene dificultad para caminar o subir escaleras?" | Binaria 0/1 | Sí/No | Discapacidad motriz adultos: 8.1% (INEGI 2020) | Equivalencia directa |
+| `Sex` | Sexo registrado en cartilla de salud | Binaria 0=F/1=M | F/M | 51.2% mujeres | Equivalencia directa |
+| `Age` | Grupo etario (CDC: 1=18–24, 13=80+) | Ordinal 1–13 | Grupos de 5 años | Pirámide mexicana más joven | **Ajuste:** distribución etaria difiere; CDC sub-representa adultos 30–44 en México |
+| `Education` | Último grado de escolaridad (CDC: 1=sin escuela, 6=universitario) | Ordinal 1–6 | Escolaridad | 24% sin educación básica completa (INEGI 2020) vs ~10% CDC | **Sesgo crítico:** CDC tiene mayor escolaridad promedio |
+| `Income` | Ingreso familiar anual (CDC: 1=<$10k, 8=>$75k) | Ordinal 1–8 | Deciles de ingreso | No equiparable directamente en USD/MXN | **Reescalar:** usar ranking relativo (quintiles), no valor absoluto |
 
-| Entregable | Estado |
-|---|---|
-| `config.py` con constantes globales, rutas y columnas CDC | ✅ |
-| `entrenamiento/cargador_datos.py` — clase `CargadorDatos` | ✅ |
-| `entrenamiento/comparador_modelos.py` — clase `ComparadorModelos` (stub) | ✅ |
-| `entrenamiento/pipeline.py` — CLI `ejecutar_pipeline()` + argparse | ✅ |
-| `inferencia/predictor.py` — clase `PredictorDiabetes` | ✅ |
-| `api/esquemas.py` — `DatosPaciente`, `RespuestaPrediccion`, `RespuestaSalud` | ✅ |
-| `api/main.py` — endpoints `/salud` y `/predecir` con modo degradado | ✅ |
-| `pruebas/test_api.py` — pruebas de contrato HTTP | ✅ |
-| `pruebas/test_cargador.py` — prueba de carga y limpieza | ✅ |
-| `pruebas/test_predictor.py` — prueba con modelos simulados | ✅ |
-| `pyproject.toml` — dependencias, configuración de pytest | ✅ |
-| `.env.example` — variables de entorno documentadas | ✅ |
-| `modelos/.gitkeep` — placeholder para artefactos (excluidos de git) | ✅ |
+### 4.2 Variable objetivo: prevalencia comparada
 
-**Detalles técnicos implementados:**
-- El `ComparadorModelos` implementa actualmente un `DummyClassifier(strategy="prior")` como clasificador base y `KMeans` como modelo de clustering. Esto define la interfaz pero **no** produce predicciones de calidad clínico.
-- El predictor soporta modelos con y sin `predict_proba` para compatibilidad máxima.
-- La API arranca incluso si el modelo no existe (`modo degradado`), devolviendo HTTP 503 en `/predecir`.
-
----
-
-### Sprint 2 — Carga/limpieza y partición robusta del dataset ⏳ PENDIENTE
-
-**Meta:** Reemplazar la carga mínima del Sprint 1 con un pipeline de datos robusto que garantice reproducibilidad, manejo de valores atípicos, detección de desbalance de clases y particiones estratificadas reproducibles.
-
-**Entregables requeridos:**
-
-| Tarea | Estado |
-|---|---|
-| Descargar e integrar el CSV `diabetes_binary_health_indicators_BRFSS2015.csv` en `datos/brutos/` | ✅ |
-| Ampliar `CargadorDatos` con análisis de distribución por columna | ⬜ |
-| Implementar imputación de valores faltantes (mediana para BMI, moda para binarias) | ✅ |
-| Detectar y documentar el desbalance de clase (`Diabetes_binary`) | ⬜ |
-| Añadir soporte para sobremuestreo (SMOTE) o submuestreo en el cargador | ⬜ |
-| Implementar partición con validación cruzada estratificada (`StratifiedKFold`) | ⬜ |
-| Agregar prueba de integración de carga sobre el dataset real (parametrizada, omitida si no existe el CSV) | ⬜ |
-| Guardar el dataset procesado en `datos/procesados/` en formato Parquet | ⬜ |
-
----
-
-### Sprint 3 — Comparación de modelos y persistencia avanzada ⏳ PENDIENTE
-
-**Meta:** Reemplazar el `DummyClassifier` por una suite de modelos reales, implementar evaluación rigurosa con métricas clínicas relevantes, y persistir los artefactos con versionado.
-
-**Entregables requeridos:**
-
-| Tarea | Estado |
-|---|---|
-| Agregar `LogisticRegression` con regularización L2 como baseline real | ⬜ |
-| Agregar `RandomForestClassifier` con búsqueda de hiperparámetros (`GridSearchCV`) | ⬜ |
-| Agregar `GradientBoostingClassifier` (o XGBoost si se añade como dependencia) | ⬜ |
-| Calcular métricas completas: accuracy, precision, recall, F1, ROC-AUC, curva PR | ⬜ |
-| Exportar reporte de métricas extendido en `reportes/metricas_entrenamiento.json` | ⬜ |
-| Implementar versionado de artefactos: `modelo_diabetes_v{timestamp}.joblib` | ⬜ |
-| Persistir el mejor modelo junto con el `ColumnTransformer`/`Pipeline` sklearn para evitar data leakage | ⬜ |
-| Añadir pruebas que verifiquen que el mejor modelo supera un umbral mínimo de ROC-AUC (ej. > 0.75) | ⬜ |
-| Generar reporte HTML o Markdown con tabla comparativa de modelos en `reportes/` | ⬜ |
-
----
-
-### Sprint 4 — Inferencia y API productiva ⏳ PENDIENTE
-
-**Meta:** Llevar la API del modo "contrato funcional" al modo "listo para producción": autenticación, contenerización, documentación interactiva y pruebas de carga.
-
-**Entregables requeridos:**
-
-| Tarea | Estado |
-|---|---|
-| Añadir autenticación básica por API Key (header `X-API-Key`) | ⬜ |
-| Implementar rate limiting (ej. `slowapi`) para prevenir abuso | ⬜ |
-| Añadir logging estructurado (JSON) con nivel configurable por variable de entorno | ⬜ |
-| Crear `Dockerfile` multi-stage (builder + runtime mínimo) | ⬜ |
-| Crear `docker-compose.yml` para levantar la API localmente con una sola instrucción | ⬜ |
-| Exponer métricas Prometheus en `/metricas` (latencia p50/p95, predicciones por categoría) | ⬜ |
-| Ampliar la validación de `DatosPaciente` con reglas clínicas adicionales | ⬜ |
-| Añadir pruebas de integración end-to-end con el cliente HTTP real | ⬜ |
-| Configurar OpenAPI (`/docs`) con ejemplos de request/response completos | ⬜ |
-
----
-
-### Sprint 5 — Observabilidad, endurecimiento y documentación final ⏳ PENDIENTE
-
-**Meta:** Asegurar que el sistema sea observable en producción, resistente a fallos y completamente documentado para equipo de operaciones y usuarios clínicos.
-
-**Entregables requeridos:**
-
-| Tarea | Estado |
-|---|---|
-| Configurar pipeline de CI/CD (GitHub Actions) con lint, pruebas y build de imagen | ⬜ |
-| Añadir análisis estático de tipos con `mypy` o `pyright` | ⬜ |
-| Implementar linting con `ruff` e integración en pre-commit hooks | ⬜ |
-| Añadir monitoreo de drift de datos (detección de distribución fuera del rango de entrenamiento) | ⬜ |
-| Documentar el proceso de re-entrenamiento y estrategia de actualización del modelo | ⬜ |
-| Redactar guía de despliegue en producción (Cloud Run, ECS, o VPS con Docker) | ⬜ |
-| Crear manual de usuario para personal clínico (interpretación de categorías y advertencias) | ⬜ |
-| Auditoría de seguridad: revisión de dependencias (`pip audit`), cabeceras HTTP seguras | ⬜ |
-| Revisión de equidad (fairness) del modelo por grupo de edad, sexo e ingreso | ⬜ |
-| Etiqueta de versión estable `v1.0.0` en el repositorio | ⬜ |
-
----
-
-## 4. Estado actual del proyecto
-
-### Resumen ejecutivo
-
-| Dimensión | Estado |
-|---|---|
-| Arquitectura modular | ✅ Definida y funcional |
-| Capa de datos | ⚠️ Contrato definido; sin dataset real ni limpieza avanzada |
-| Capa de modelos | ⚠️ Interfaz lista; modelo actual es un clasificador ficticio (`DummyClassifier`) |
-| Capa de inferencia | ✅ Funcional con cualquier modelo `sklearn` compatible |
-| API REST | ✅ Endpoints operativos con modo degradado y validación clínica |
-| Pruebas automáticas | ✅ 6 pruebas de contrato (cargador, predictor, API) |
-| Configuración de entorno | ✅ `pyproject.toml`, `.env.example`, `pyproject.toml` pytest |
-| Dataset real integrado | ❌ Faltante (`datos/brutos/` vacío) |
-| Modelo entrenado real | ❌ Faltante (`modelos/` vacío) |
-| Docker / CI-CD | ❌ No implementado |
-| Observabilidad producción | ❌ No implementado |
-
-### Progreso por sprint
-
-```
-Sprint 1 ████████████████████ 100%  ✅ Completado
-Sprint 2 ░░░░░░░░░░░░░░░░░░░░   0%  ⏳ Pendiente
-Sprint 3 ░░░░░░░░░░░░░░░░░░░░   0%  ⏳ Pendiente
-Sprint 4 ░░░░░░░░░░░░░░░░░░░░   0%  ⏳ Pendiente
-Sprint 5 ░░░░░░░░░░░░░░░░░░░░   0%  ⏳ Pendiente
-```
-
----
-
-## 5. Pasos inmediatos (próximas acciones)
-
-Los siguientes pasos son los más críticos para desbloquear el avance hacia el Sprint 2:
-
-1. **Obtener el dataset CDC BRFSS 2015** — Descargar `diabetes_binary_health_indicators_BRFSS2015.csv` desde [Kaggle](https://www.kaggle.com/datasets/alexteboul/diabetes-health-indicators-dataset) y colocarlo en `datos/brutos/`. Sin él, no es posible entrenar ningún modelo real.
-
-2. **Ampliar la limpieza de datos** — Extender `CargadorDatos.limpieza_basica()` con análisis de desbalance de clase, imputación y exportación a Parquet.
-
-3. **Implementar modelos reales** — Reemplazar el `DummyClassifier` en `ComparadorModelos` con `LogisticRegression` y `RandomForestClassifier` como punto de partida.
-
-4. **Ejecutar el pipeline de entrenamiento** y verificar que produce un `.joblib` válido que la API pueda consumir end-to-end.
-
-5. **Configurar GitHub Actions** para que cada pull request ejecute `pytest` automáticamente.
-
----
-
-## 6. Cómo ejecutar el proyecto localmente
-
-```bash
-# 1. Instalar dependencias (incluyendo dev)
-python -m pip install -e .[dev]
-
-# 2. Ejecutar pruebas
-pytest
-
-# 3. Entrenar el modelo (requiere dataset en datos/brutos/)
-python -m entrenamiento.pipeline --modo clasificacion
-
-# 4. Levantar la API
-uvicorn api.main:app --reload
-
-# 5. Probar el endpoint de salud
-curl http://localhost:8000/salud
-
-# 6. Probar una predicción
-curl -X POST http://localhost:8000/predecir \
-  -H "Content-Type: application/json" \
-  -d '{
-    "presion_alta": 1, "colesterol_alto": 1, "chequeo_colesterol": 1,
-    "imc": 29.5, "fumador": 0, "derrame_cerebral": 0,
-    "enfermedad_corazon": 0, "actividad_fisica": 1,
-    "consume_fruta": 1, "consume_verdura": 1, "consumo_alcohol_alto": 0,
-    "tiene_cobertura_medica": 1, "sin_medico_por_costo": 0,
-    "salud_general": 2, "salud_mental": 2, "salud_fisica": 2,
-    "dificultad_caminar": 0, "sexo": 1, "edad": 7,
-    "educacion": 4, "ingreso": 6
-  }'
-```
-
----
-
-## 7. Dependencias clave
-
-| Paquete | Versión mínima | Rol |
+| Indicador | EE. UU. (CDC BRFSS 2015) | México (ENSANUT 2022) |
 |---|---|---|
-| `fastapi` | 0.112.0 | Framework API REST |
-| `uvicorn` | 0.30.0 | Servidor ASGI |
-| `pydantic` | 2.8.0 | Validación y esquemas de datos |
-| `pandas` | 2.2.0 | Manipulación del dataset CDC |
-| `scikit-learn` | 1.5.0 | Modelos ML, partición, métricas |
-| `joblib` | 1.4.0 | Serialización de modelos |
-| `pytest` | 8.2.0 | Suite de pruebas (dev) |
-| `httpx` | 0.27.0 | Cliente HTTP para pruebas de API (dev) |
+| Diabetes diagnosticada (adultos) | 13.0% | 12.6% |
+| Prediabetes / riesgo elevado | 37.3% | 11.7% (ayuno alterado) |
+| Diabetes no diagnosticada | ~21% del total | ~35% del total |
+| Prevalencia en mayores de 60 años | ~26% | ~31% |
+
+**Implicación para el modelo:** la prevalencia base (~13%) es similar entre contextos, lo que valida CDC como proxy de entrenamiento. Sin embargo, la diabetes no diagnosticada es significativamente mayor en México, lo que justifica un umbral de decisión más conservador (0.25 en lugar de 0.33) para despliegue operativo.
+
+---
+
+## 5. Catálogo de modelos: justificación
+
+Cada modelo se serializa como un `sklearn.Pipeline` completo (preprocesador + estimador) para garantizar compatibilidad con `PredictorDiabetes.predecir()` sin modificaciones.
+
+| Modelo | Justificación clínica | Parámetros clave | ROC-AUC esperado |
+|---|---|---|---|
+| SVM (kernel RBF) | Efectivo en espacios de alta dimensión con variables mixtas; el margen de separación máximo tiene interpretación natural como zona de incertidumbre clínica | `kernel='rbf'`, `probability=True`, `class_weight='balanced'`, grilla CV: `C=[0.1,1,10]`, `gamma=['scale','auto']` | 0.78–0.80 |
+| Árbol de decisión / GBM | Genera reglas legibles ("si IMC > 30 Y HTA = 1 → riesgo alto") auditables por el clínico; GBM amplifica la capacidad con mayor precisión | Árbol: `max_depth=5`, `class_weight='balanced'`; GBM: `n_estimators=200`, `max_depth=4`, `learning_rate=0.05` | 0.80–0.83 |
+| MLP | Captura interacciones no lineales entre factores de riesgo metabólico (el efecto conjunto de obesidad + sedentarismo + edad no es aditivo) | `hidden_layer_sizes=(64,32)`, `early_stopping=True`, `validation_fraction=0.1`, `max_iter=500` | 0.78–0.81 |
+| K-Means (fenotipador) | Se usa para fenotipado metabólico previo a la clasificación, NO como predictor de diabetes. Descubre subtipos clínicamente interpretables de pacientes para enriquecer las features supervisadas | `n_clusters=3` (o K óptimo por silhouette), variables: BMI, GenHlth, PhysHlth, MentHlth, Age, PhysActivity, HighBP, HighChol, HeartDiseaseorAttack | Sin supervisión — evaluado por silhouette score |
+
+**Regla crítica de diseño para K-Means:** incluir `Diabetes_binary` en el clustering introduce sesgo de confirmación. K-Means debe ajustarse exclusivamente sobre `X_train` sin la variable objetivo. El fenotipo asignado se añade luego como feature adicional al pipeline supervisado.
+
+---
+
+## 6. Marco de explicabilidad y equidad
+
+### 6.1 SHAP — justificación clínica
+
+Un modelo de caja negra será penalizado por evaluadores académicos en contexto médico. SHAP convierte las salidas de GBM y MLP en evidencia auditable que responde la pregunta del clínico: "¿Por qué dice que este paciente es de riesgo alto?"
+
+Tres visualizaciones requeridas:
+- **Summary plot** (`reportes/shap_summary.png`): importancia global de variables para el paper académico.
+- **Waterfall plot** (Dashboard, por paciente): contribución individual de cada factor a la predicción específica.
+- **Dependence plot** (`reportes/shap_dependence_bmi_edad.png`): análisis de interacción, recomendado para IMC × Edad, para revelar que las intervenciones de control de peso son más críticas en adultos de 40–60 años (grupos CDC 7–9), que coinciden con la mayor prevalencia en ENSANUT 2022.
+
+### 6.2 Documentación de sesgo (CDC → México)
+
+Presentar las limitaciones como contribuciones metodológicas diferencia un trabajo de nivel avanzado de un tutorial de scikit-learn.
+
+**Encuadre recomendado para la sección de Discusión del paper:**
+> "Este trabajo contribuye a la literatura hispanohablante con el primer análisis sistemático de la transferibilidad del dataset CDC BRFSS 2015 al contexto de salud pública mexicano, documentando las variables con mayor sesgo distribucional y proponiendo ajustes de umbral específicos para el primer nivel de atención del IMSS."
+
+Tres limitaciones documentadas a tratar:
+1. **Sesgo de selección geográfica** — Diferencias distribucionales en tabaquismo, escolaridad e ingreso.
+2. **Calibración** — Probabilidades bien ordenadas (AUC alto) no implican calibración correcta para México. Brier Score > 0.15 → aplicar Platt Scaling. Umbral operativo recomendado: 0.25 (vs 0.33 predeterminado), justificado por la mayor tasa de diabetes no diagnosticada en México.
+3. **Ausencia de datos de validación mexicanos** — Trabajo futuro propuesto: acceso a microdatos ENSANUT 2022, *Transfer Component Analysis* para reducir el *covariate shift*.
+
+### 6.3 Análisis de equidad: subgrupos a evaluar
+
+| Dimensión | Columna | Grupos |
+|---|---|---|
+| Sexo | `Sex` | 0 (femenino) vs 1 (masculino) |
+| Edad | `Age` | Joven (1–4: 18–39) / Adulto medio (5–9: 40–64) / Mayor (10–13: 65+) |
+| Ingreso | `Income` | Quintil bajo (1–2) vs quintil alto (7–8) |
+| Escolaridad | `Education` | Sin educación básica (1–2) vs educación media/superior (4–6) |
+
+**Hallazgo conocido en datos BRFSS:** los modelos de ML tienden a tener mayor tasa de falsos negativos en mujeres de ingreso bajo (sesgo de doble marginación). Debe documentarse explícitamente en el análisis de equidad del paper.
+
+---
+
+## 7. Benchmarks académicos
+
+Esta tabla ancla el objetivo de desempeño para la sección de Discusión del paper.
+
+| Estudio | Población | Dataset | Mejor modelo | ROC-AUC | Variables |
+|---|---|---|---|---|---|
+| Tigga & Garg (2020) | India | PIMA Indians | Random Forest | 0.82 | 8 |
+| Zou et al. (2018) | China | Datos hospitalarios | Decision Tree | 0.78 | 13 |
+| Huang et al. (2022) | EE. UU. (hispanos) | NHANES | SVM + features clínicos | 0.80 | 21 |
+| Sisodia & Sisodia (2018) | India | PIMA Indians | Naive Bayes | 0.78 | 8 |
+| **Este trabajo** | EE. UU. / proxy México | CDC BRFSS 2015 | Por determinar | **Objetivo ≥ 0.78** | 21 + fenotipo |
+
+**Objetivo de desempeño:** superar 0.78 de ROC-AUC para ser competitivo con la literatura. GradientBoostingClassifier típicamente alcanza 0.80–0.83 en este dataset.
+
+---
+
+## 8. Contrato de preprocesamiento
+
+El preprocesador se construye como un `sklearn.Pipeline` para prevenir *data leakage*. El `Pipeline` completo (preprocesador + estimador) se serializa como un único `.joblib`. `PredictorDiabetes` es compatible sin modificaciones, ya que llama a `predict_proba` sobre el objeto cargado.
+
+| Grupo de columnas | Columnas | Transformaciones |
+|---|---|---|
+| Continuas | `BMI`, `MentHlth`, `PhysHlth` | `SimpleImputer(mediana)` → `StandardScaler()` |
+| Binarias | `HighBP`, `HighChol`, `CholCheck`, `Smoker`, `Stroke`, `HeartDiseaseorAttack`, `PhysActivity`, `Fruits`, `Veggies`, `HvyAlcoholConsump`, `AnyHealthcare`, `NoDocbcCost`, `DiffWalk`, `Sex` | `SimpleImputer(moda)` → passthrough |
+| Ordinales | `GenHlth`, `Age`, `Education`, `Income` | `SimpleImputer(moda)` → `OrdinalEncoder` (orden explícito) |
+| Fenotipo (Sprint 3+) | `fenotipo` | `SimpleImputer(moda)` → `OrdinalEncoder` |
+
+**Decisión de diseño:** las variables binarias no se escalan. Están en codificación {0,1} consistente; aplicar StandardScaler no aporta información y dificulta la interpretabilidad.
+
+---
+
+## 9. Métricas de evaluación clínica
+
+Para un sistema de tamizaje de diabetes, la **sensibilidad (recall de clase positiva)** es más crítica que la precisión. Un falso negativo (paciente diabético clasificado como sano) tiene consecuencias clínicas más graves que un falso positivo.
+
+| Métrica | Fórmula | Umbral aceptable | Justificación clínica |
+|---|---|---|---|
+| **ROC-AUC** | Área bajo curva ROC | > 0.78 | Métrica principal para comparativa con literatura |
+| **Sensibilidad** | TP / (TP + FN) | > 0.70 | Detectar el 70%+ de diabéticos reales |
+| **Especificidad** | TN / (TN + FP) | > 0.65 | Evitar saturar el sistema de salud con falsos positivos |
+| **F1-Score (clase +)** | 2·P·R / (P+R) | > 0.55 | Balance ante desbalance de clases |
+| **PR-AUC** | Área bajo curva PR | > 0.50 | Más informativo que ROC ante desbalance severo |
+| **Brier Score** | MSE de probabilidades | < 0.15 | Mide calibración: ¿la probabilidad reflejada es real? |
