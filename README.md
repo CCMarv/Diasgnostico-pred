@@ -331,6 +331,8 @@ El proyecto sigue una metodología en espiral de 5 sprints. Estado actual:
 
 Para el detalle de tickets y dependencias, consultar `docs/ROADMAP.md`.
 
+Para la explicación por modelo, consultar [docs/implementacion_modelos/README.md](docs/implementacion_modelos/README.md).
+
 ---
 
 ## Licencia

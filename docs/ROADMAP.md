@@ -52,7 +52,8 @@
 | ID | Tarea | Prioridad | Dependencia | Estado |
 |---|---|---|---|---|
 | S2-01 | Descargar CDC BRFSS 2015 vía `ucimlrepo` → `datos/brutos/` | CRÍTICA | — | ✅ Completo |
-| S2-02 | Crear `notebooks/01_eda_regionalizado.ipynb` (6 bloques) | CRÍTICA | S2-01 | ⚠️ Parcial — creado, pendiente validación con datos reales |
+| S2-02 | Crear `notebooks/01_eda_regionalizado.ipynb` (6 bloques) | CRÍTICA | S2-01 | 
+| S2-01 | Descargar CDC BRFSS 2015 vía `ucimlrepo` → `datos/brutos/` | CRÍTICA | — | ✅ Completo |
 | S2-03 | Implementar `entrenamiento/preprocesador.py` con `ColumnTransformer` | CRÍTICA | S2-01 | ✅ Completo |
 | S2-04 | Extender `ComparadorModelos` con SVM, GBM, MLP usando Pipeline sklearn | CRÍTICA | S2-03 | ✅ Completo |
 | S2-05 | Crear `entrenamiento/evaluador.py` con métricas clínicas + gráficas | ALTA | S2-04 | ✅ Completo |
