@@ -14,7 +14,7 @@ El sistema recibe como entrada un perfil de salud del paciente (condiciones cró
 
 Está diseñado para investigadores de salud pública y equipos de desarrollo que necesiten un prototipo desplegable de tamizaje preventivo, sin exponer datos personales identificables. La arquitectura permite sustituir el dataset de entrenamiento o el modelo subyacente sin modificar la capa de inferencia ni la API.
 
-## Colaboración y claridad de notas (equipo de 3)
+## Lineamientos de colaboración
 
 Este proyecto se mantiene de forma colaborativa y está dirigido a estudiantes universitarios con base en Python. Para mantener consistencia:
 

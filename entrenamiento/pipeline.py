@@ -25,7 +25,7 @@ _LOG = logging.getLogger(__name__)
 
 
 def _extraer_probabilidad_clase_1(modelo, x) -> list[float]:
-    """Normaliza salida del modelo a probabilidades de clase positiva."""
+    """Normaliza salida del modelo a probabilidades de clase positiva (riesgo de diabetes)."""
     if hasattr(modelo, "predict_proba"):
         probabilidades = modelo.predict_proba(x)
         return [float(fila[-1]) for fila in probabilidades]
