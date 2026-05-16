@@ -60,8 +60,6 @@
 | S2-06 | Ampliar `entrenamiento/pipeline.py` para serializar Pipeline completo | ALTA | S2-03, S2-04 | ✅ Completo |
 | S2-07 | Añadir `pruebas/test_preprocesador.py` — verifica ausencia de data leakage | ALTA | S2-03 | ✅ Completo |
 | S2-08 | Ampliar `pruebas/test_cargador.py` con análisis de distribución y desbalance | MEDIA | S2-01 | ✅ Completo |
-| S2-11 | Refactor: Extraer catálogo de modelos y helpers de ajuste (`ComparadorModelos`) | MEDIA | S2-04 | ⬜ Pendiente |
-| S2-12 | Refactor: Reorganizar `ejecutar_pipeline` en pasos y extraer utilitarios | MEDIA | S2-06 | ⬜ Pendiente |
 | S2-09 | Persistir dataset procesado en `datos/procesados/` formato Parquet | MEDIA | S2-03 | ⚠️ Parcial — método `persistir_procesado()` existe; sin artefacto versionado en repo |
 | S2-10 | Generar `reportes/contraste_regional.md` con datos reales | MEDIA | S2-02 | ⚠️ Parcial — script generador en `reportes/generar_contraste_regional.py`; salida no producida |
 
