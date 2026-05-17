@@ -201,6 +201,18 @@ El Pipeline automáticamente:
 
 ---
 
+## Coherencia con el código y notas para no-programadores
+
+- Implementación real: en `entrenamiento/comparador_modelos.py` la SVM se define con `kernel='rbf'`, `class_weight='balanced'` y la búsqueda explora `C` en `[0.1, 1, 10]` y `gamma` en `['scale','auto']`.
+- Proceso de búsqueda: durante la validación cruzada la SVM se instancia con `probability=False` (más rápido). Una vez elegida la mejor combinación, el código reentrena (`refit`) el estimador final con `probability=True` para que el modelo final guarde probabilidades útiles para la API.
+
+Explicación en lenguaje llano:
+
+- "Durante la fase de prueba probamos varias combinaciones sin pedir probabilidades para ahorrar tiempo; cuando elegimos la mejor combinación reentrenamos el modelo final y le pedimos que calcule probabilidades, que es lo que la API usa para dar un riesgo de diabetes." 
+
+Acción recomendada: al documentar experimentos o al reproducir resultados, anotar que la búsqueda es rápida (sin probabilidades) y que el modelo final guarda probabilidades.
+
+
 ## Referencia de capas en el proyecto
 
 1. **Definición:** [entrenamiento/comparador_modelos.py](../../entrenamiento/comparador_modelos.py) - instancia SVC
