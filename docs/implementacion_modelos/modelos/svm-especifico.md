@@ -212,6 +212,8 @@ Explicación en lenguaje llano:
 
 Acción recomendada: al documentar experimentos o al reproducir resultados, anotar que la búsqueda es rápida (sin probabilidades) y que el modelo final guarda probabilidades.
 
+Actualización del repositorio: la búsqueda formal de hiperparámetros ahora queda encapsulada también en `entrenamiento/optimizador.py` mediante `OptimizadorHiperparametros`, con cobertura en `pruebas/test_optimizador.py`.
+
 
 ## Referencia de capas en el proyecto
 
