@@ -51,6 +51,8 @@ La rama actual también incorpora el bloque de Sprint 3 ya validado en pruebas:
 - [pruebas/test_fenotipado.py](pruebas/test_fenotipado.py) y [pruebas/test_optimizador.py](pruebas/test_optimizador.py) cubren esos módulos.
 - `pytest pruebas/test_fenotipado.py pruebas/test_optimizador.py pruebas/test_preprocesador.py -q` pasó en verde.
 
+La salida de `reportes/` ahora se trata como artefacto generado por el pipeline, no como documentación fuente versionada. Cada corrida produce un JSON crudo para trazabilidad y un Markdown legible para consumo humano; si hace falta reconstruir el informe, el script [scripts/generar_reporte_legible.py](scripts/generar_reporte_legible.py) rehace la síntesis desde el JSON.
+
 Estas evidencias se usaron para actualizar [docs/evaluacion_academica.md](docs/evaluacion_academica.md) y la ruta compacta del proyecto.
 
 ---
@@ -119,8 +121,8 @@ uvicorn api.main:app --reload
 La corrida completa debe dejar estos artefactos como evidencia:
 
 - `modelos/modelo_diabetes_v1.joblib`
-- `reportes/metricas_sprint1.json`
-- `reportes/comparativa_modelos.md`
+- `reportes/metricas_sprint1.json` o el JSON crudo equivalente de la corrida
+- `reportes/metricas_sprint1.md` o el Markdown legible equivalente de la corrida
 - `reportes/curvas_<modelo>.png`
 
 Para validaciones académicas más recientes, también se generan:
@@ -129,6 +131,8 @@ Para validaciones académicas más recientes, también se generan:
 - `reportes/contraste_regional.md`
 - `reportes/comparativa_1000_intermedio.md`
 - `reportes/comparativa_1000_intermedio.csv`
+
+En la práctica, los archivos dentro de `reportes/` son derivados de la ejecución. El repositorio conserva la lógica para regenerarlos, no la obligación de versionarlos uno por uno.
 
 Si el objetivo es revisar la rúbrica hasta Nivel Intermedio, la corrida de 1000 muestras es suficiente para auditar el flujo sin tener que repetir el entrenamiento completo del dataset.
 
@@ -155,18 +159,22 @@ Alternativamente puede pasar la ruta al CSV con `--dataset datos/brutos/mi_csv.c
 Después de disponer del CSV, ejecute el pipeline para entrenar y generar artefactos:
 
 - `modelos/modelo_diabetes_v1.joblib` — pipeline serializado listo para inferencia
-- `reportes/metricas_sprint1.json` — métricas de todos los modelos evaluados
-- `reportes/comparativa_modelos.md` — tabla comparativa en Markdown
+- `reportes/metricas_sprint1.json` — JSON crudo con métricas de todos los modelos evaluados
+- `reportes/metricas_sprint1.md` — tabla comparativa en Markdown generada desde el JSON crudo
 - `reportes/curvas_<modelo>.png` — curvas ROC y Precision-Recall del mejor modelo
+
+El pipeline acepta `--salida-reporte` para el JSON crudo y `--salida-reporte-legible` para el Markdown. Si no se pasa la lista de modelos con `--modelos`, se usan por defecto `svm`, `arbol`, `gbm` y `mlp`.
 
 Argumentos disponibles:
 
 | Argumento | Descripción | Ejemplo |
 |---|---|---|
 | `--modo` | `clasificacion` o `clustering` | `--modo clasificacion` |
-| `--modelos` | Modelos a entrenar, separados por coma | `--modelos gbm,mlp` |
+| `--modelos` | Modelos a entrenar, separados por coma. Si se omite, usa el catálogo por defecto | `--modelos gbm,mlp` |
 | `--dataset` | Ruta alternativa al CSV | `--dataset datos/brutos/mi_csv.csv` |
 | `--salida-modelo` | Ruta de destino del `.joblib` | `--salida-modelo modelos/v2.joblib` |
+| `--salida-reporte` | Ruta del JSON crudo generado por el pipeline | `--salida-reporte reportes/metricas_sprint1.json` |
+| `--salida-reporte-legible` | Ruta opcional del Markdown legible | `--salida-reporte-legible reportes/metricas_sprint1.md` |
 
 ### 2. Levantar la API
 
