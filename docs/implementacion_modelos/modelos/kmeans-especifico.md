@@ -228,6 +228,23 @@ pipeline_mejorado.fit(X_train_enriquecido, y_train)
 
 **Nota:** El proyecto por defecto **no hace** este enriquecimiento. Es una extensión opcional para investigación.
 
+## Coherencia con el código y cómo ejecutar (notas para no-programadores)
+
+- Implementación real: el pipeline soporta un modo `clustering` que carga el dataset sin la variable objetivo, aplica limpieza básica y entrena K-Means usando `ComparadorModelos.entrenar_clustering`.
+- Comando para ejecutar desde la raíz del repositorio:
+
+```bash
+python -m entrenamiento.pipeline --modo clustering --clusters 3
+```
+
+- Resultado: el pipeline guardará el modelo K-Means serializado en la ruta configurada (por defecto `modelos/modelo_fenotipo_kmeans.joblib`) y escribirá un reporte JSON con el puntaje (`inercia`) en `reportes/`.
+
+Explicación en lenguaje llano:
+
+- "Si quieres agrupar pacientes en 3 fenotipos usando el mismo flujo del proyecto, ejecuta el pipeline en modo `clustering`. El sistema limpiará los datos, hará el clustering y guardará el modelo. Esto no afecta los modelos supervisados ni los reemplaza; es una tarea separada de análisis exploratorio." 
+
+Acción recomendada: si planeas usar los clusters como nueva variable en training supervisado, documenta ese experimento y persiste el modelo K-Means versionado para reproducibilidad.
+
 ---
 
 ## Diferencias respecto a sklearn básico
