@@ -245,6 +245,8 @@ Explicación en lenguaje llano:
 
 Acción recomendada: si planeas usar los clusters como nueva variable en training supervisado, documenta ese experimento y persiste el modelo K-Means versionado para reproducibilidad.
 
+Actualización del repositorio: el helper formal `FenotipadoKMeans` vive en `entrenamiento/fenotipado.py` y tiene cobertura en `pruebas/test_fenotipado.py`, así que este documento describe la implementación real y no solo el flujo didáctico.
+
 ---
 
 ## Diferencias respecto a sklearn básico
