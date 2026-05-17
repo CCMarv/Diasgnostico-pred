@@ -1,9 +1,9 @@
 # Evaluación Académica del Proyecto Final
 <!-- Plantilla gestionada por AcademicoIA v3.1 — no editar manualmente secciones marcadas con [AUTO] -->
 
-**Última actualización:** [FECHA]
-**Nivel estimado actual:** [Básico / Intermedio / Avanzado]
-**Puntos extra acumulados:** [0 / +15 / +30]
+**Última actualización:** 2026-05-17
+**Nivel estimado actual:** Básico (hacia Intermedio)
+**Puntos extra acumulados:** 0
 
 ---
 
@@ -32,11 +32,11 @@
 
 | Requisito | Evidencia en código | Archivo | Estado |
 |-----------|---------------------|---------|--------|
-| Pipeline completo con al menos 3 modelos | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| Preprocessing básico (imputación, escalado, encoding) | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| Métricas de evaluación estándar (accuracy, precision, recall, F1) | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
+| Pipeline completo con al menos 3 modelos | Pipeline con SVM, Árbol, GBM y MLP evaluados por `comparador_modelos.py` | entrenamiento/comparador_modelos.py | ✅ |
+| Preprocessing básico (imputación, escalado, encoding) | Preprocesamiento centralizado en `ConstructorPreprocesador` usado por el pipeline | entrenamiento/preprocesador.py | ✅ |
+| Métricas de evaluación estándar (accuracy, precision, recall, F1) | Métricas calculadas y reportadas por `entrenamiento/evaluador.py` | entrenamiento/evaluador.py | ✅ |
 
-**Veredicto Básico:** [COMPLETADO / INCOMPLETO — bloqueantes: X, Y]
+**Veredicto Básico:** COMPLETADO — no hay bloqueantes críticos
 
 ---
 
@@ -49,11 +49,11 @@
 | SVM implementado y evaluado | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
 | Árboles de decisión implementados y evaluados | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
 | Redes neuronales (`MLPClassifier`) implementadas y evaluadas | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| K-Means implementado y evaluado | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| Optimización de hiperparámetros (`GridSearchCV` o `RandomizedSearchCV`) | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
+| K-Means implementado y evaluado | Implementado como `FenotipadoKMeans` con `silhouette_score` > 0 en datos sintéticos | entrenamiento/fenotipado.py | ✅ |
+| Optimización de hiperparámetros (`GridSearchCV` o `RandomizedSearchCV`) | Implementado `OptimizadorHiperparametros` (GridSearchCV + StratifiedKFold) | entrenamiento/optimizador.py | ✅ |
 | Dashboard interactivo básico (Streamlit u otro) | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
 
-**Veredicto Intermedio:** [COMPLETADO (+15) / INCOMPLETO — faltantes: X, Y]
+**Veredicto Intermedio:** INCOMPLETO — faltan Dashboard (I6) y muestra académica (S3-009)
 
 ---
 
@@ -174,8 +174,8 @@
 
 | Técnica | Clase/función | Archivo esperado | Estado |
 |---------|---------------|------------------|--------|
-| K-Means | `KMeans(init='k-means++')` | `entrenamiento/fenotipado.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Validación interna | Método del codo + `silhouette_score` | `entrenamiento/fenotipado.py` | [✅/`EVIDENCE_NOT_FOUND`] |
+| K-Means | `KMeans(init='k-means++')` | `entrenamiento/fenotipado.py` | ✅ |
+| Validación interna | Método del codo + `silhouette_score` | `entrenamiento/fenotipado.py` | ✅ |
 
 ### Unidad 4 — Optimización y Redes Neuronales
 
@@ -193,7 +193,7 @@
 
 | Fecha | Cambio | Nivel anterior → nuevo | Responsable |
 |-------|--------|------------------------|-------------|
-| [FECHA] | [descripción del cambio técnico] | [nivel] → [nivel] | AcademicoIA |
+| 2026-05-17 | Implementado `FenotipadoKMeans` con pruebas unitarias; implementado `OptimizadorHiperparametros` con pruebas; ejecución de la muestra mínima de estabilidad y pruebas pasadas. Suite de pruebas `pruebas/` ejecutada: 20 passed. | Básico → Básico (hacia Intermedio) | AcademicoIA |
 
 ---
 
@@ -205,6 +205,7 @@
 - [ ] [acción concreta] → archivo a modificar: `[ruta]`
 
 ### Bloqueantes para Nivel Intermedio (+15)
+- [x] K-Means implementado — archivo: `entrenamiento/fenotipado.py`
 - [ ] Dashboard interactivo — ejecutar con `streamlit run dashboard/app.py`
 - [ ] [otras acciones]
 
