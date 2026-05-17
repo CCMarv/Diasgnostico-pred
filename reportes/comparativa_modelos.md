@@ -1,3 +1,9 @@
+<!--
+	Este archivo es un ARTEFACTO GENERADO por `python -m entrenamiento.pipeline`.
+	No editar manualmente: los cambios deben provenir de la ejecución del pipeline
+	que produce métricas y tablas comparativas.
+-->
+
 | nombre_modelo | roc_auc | pr_auc | sensibilidad | especificidad | f1_clase_positiva | brier_score | accuracy |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | gbm | 0.7406 | 0.7381 | 0.7500 | 0.6750 | 0.7229 | 0.2224 | 0.7125 |
