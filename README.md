@@ -69,8 +69,13 @@ Extras opcionales: `pip install -e .[dashboard]` para Streamlit, `pip install -e
 ```bash
 git clone https://github.com/tu-usuario/diasgnostico-pred.git
 cd diasgnostico-pred
-python -m venv venv
-source venv/bin/activate        # En Windows: venv\Scripts\activate
+conda env create -f environment.yml
+conda activate diagnostico-pred
+```
+
+Si prefieres instalar manualmente dentro de un entorno ya creado:
+
+```bash
 pip install -e .[dev]
 ```
 
@@ -80,6 +85,27 @@ Verificar que la instalación es correcta:
 pytest
 # Se esperan todas las pruebas en verde; el modelo real no es necesario para los tests de contrato.
 ```
+
+### Validación completa desde cero
+
+Para probar el programa completo en un entorno limpio, sigue este orden:
+
+```bash
+conda env create -f environment.yml
+conda activate diagnostico-pred
+pytest pruebas/test_cargador.py pruebas/test_predictor.py pruebas/test_api.py
+python -m entrenamiento.pipeline --modo clasificacion
+uvicorn api.main:app --reload
+```
+
+La corrida completa debe dejar estos artefactos como evidencia:
+
+- `modelos/modelo_diabetes_v1.joblib`
+- `reportes/metricas_sprint1.json`
+- `reportes/comparativa_modelos.md`
+- `reportes/curvas_<modelo>.png`
+
+Si el entrenamiento tarda demasiado, eso es esperable en el estado actual; lo importante es que siga mostrando progreso y termine con artefactos válidos.
 
 ---
 
