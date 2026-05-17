@@ -34,8 +34,15 @@ ni `config.py` salvo para agregar constantes nuevas compatibles.**
    El `Pipeline` serializado debe responder a `predict_proba` sin modificar el predictor.
 5. **Constantes en `config.py`**: ningún módulo define rutas, semillas ni umbrales
    como literales. Importa siempre desde `config`.
-6. **Dataset via UCI ML Repo**: usar `ucimlrepo` para obtener el dataset.
-   Ver sección SPRINT 2 > Ticket S2-01 para el snippet exacto.
+6. **Dataset via UCI ML Repo**: el proyecto incluye un descargador que usa `ucimlrepo`, pero **el pipeline no ejecuta la descarga automáticamente**. Use el snippet del SPRINT 2 > Ticket S2-01 para ejecutar manualmente el descargador cuando sea necesario.
+  Snippet de ejemplo:
+
+```python
+from entrenamiento.descargador_dataset import descargar_y_persistir
+descargar_y_persistir()
+```
+
+  El estado de los sprints y prioridades está en `docs/ROADMAP.md`.
 
 ---
 
