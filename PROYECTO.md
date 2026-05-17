@@ -30,6 +30,7 @@
 │  comparador_modelos.py → experimentos       │
 │  fenotipado.py → K-Means / fenotipado       │
 │  optimizador.py → GridSearchCV formal       │
+│  generador_reportes.py → síntesis legible   │
 │  evaluador.py → métricas clínicas           │
 │  pipeline.py  → orquestador CLI             │
 └────────────────────┬────────────────────────┘
@@ -218,7 +219,21 @@ Esta tabla ancla el objetivo de desempeño para la sección de Discusión del pa
 
 ---
 
-## 8. Contrato de preprocesamiento
+## 8. Contratos de salida y reportes
+
+El pipeline ya no debe interpretarse como productor de reportes finales versionados. Su salida se divide en tres capas:
+
+| Salida | Propósito | Formato | Observación |
+|---|---|---|---|
+| Manifiesto previo | Registrar parámetros de la corrida antes de entrenar | JSON | Útil para trazabilidad y depuración |
+| Reporte crudo | Persistir métricas serializables para auditoría | JSON | Fuente técnica del informe |
+| Reporte legible | Resumir los resultados en Markdown para lectura humana | MD | Se genera a partir del JSON crudo |
+
+Los archivos de `reportes/` son artefactos derivados del pipeline. Si hace falta reconstruir un informe, se usa el JSON crudo junto con [scripts/generar_reporte_legible.py](scripts/generar_reporte_legible.py).
+
+---
+
+## 9. Contrato de preprocesamiento
 
 El preprocesador se construye como un `sklearn.Pipeline` para prevenir *data leakage*. El `Pipeline` completo (preprocesador + estimador) se serializa como un único `.joblib`. `PredictorDiabetes` es compatible sin modificaciones, ya que llama a `predict_proba` sobre el objeto cargado.
 
@@ -233,7 +248,7 @@ El preprocesador se construye como un `sklearn.Pipeline` para prevenir *data lea
 
 ---
 
-## 9. Métricas de evaluación clínica
+## 10. Métricas de evaluación clínica
 
 Para un sistema de tamizaje de diabetes, la **sensibilidad (recall de clase positiva)** es más crítica que la precisión. Un falso negativo (paciente diabético clasificado como sano) tiene consecuencias clínicas más graves que un falso positivo.
 
