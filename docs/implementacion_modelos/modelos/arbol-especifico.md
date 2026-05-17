@@ -170,6 +170,8 @@ Explicación en lenguaje llano:
 
 Acción recomendada: documentar en experimentos si se cambia `max_depth` o se activa `ccp_alpha` para poda, y conservar `class_weight='balanced'` salvo justificación clínica explícita.
 
+Actualización del repositorio: este documento sigue siendo coherente con `entrenamiento/comparador_modelos.py`; la lógica de búsqueda formal de hiperparámetros vive aparte en `entrenamiento/optimizador.py` y no altera el baseline del árbol.
+
 ## Referencia de capas en el proyecto
 
 1. **Definición:** [entrenamiento/comparador_modelos.py](../../entrenamiento/comparador_modelos.py) - instancia DecisionTreeClassifier
