@@ -195,6 +195,8 @@ Explicación en lenguaje llano:
 
 Acción recomendada: documentar en experimentos cualquier cambio en `hidden_layer_sizes`, `alpha` o `learning_rate_init`, ya que estos impactan fuertemente convergencia y generalización.
 
+Actualización del repositorio: la implementación formal sigue en `entrenamiento/comparador_modelos.py`, y las pruebas del ajuste de flujo para el sprint 3 quedan reflejadas en la suite del repositorio.
+
 ## Referencia de capas en el proyecto
 
 1. **Definición:** [entrenamiento/comparador_modelos.py](../../entrenamiento/comparador_modelos.py) - instancia MLPClassifier
