@@ -44,6 +44,13 @@ El repositorio incluye una corrida académica reproducible sobre 1000 muestras p
 - [reportes/comparativa_1000_intermedio.md](reportes/comparativa_1000_intermedio.md) documenta la comparación académica con métricas clínicas completas.
 - [reportes/contraste_regional.md](reportes/contraste_regional.md) resume el sesgo distribucional CDC vs ENSANUT.
 
+La rama actual también incorpora el bloque de Sprint 3 ya validado en pruebas:
+
+- [entrenamiento/fenotipado.py](entrenamiento/fenotipado.py) implementa `FenotipadoKMeans` para I4.
+- [entrenamiento/optimizador.py](entrenamiento/optimizador.py) implementa `OptimizadorHiperparametros` para I5.
+- [pruebas/test_fenotipado.py](pruebas/test_fenotipado.py) y [pruebas/test_optimizador.py](pruebas/test_optimizador.py) cubren esos módulos.
+- `pytest pruebas/test_fenotipado.py pruebas/test_optimizador.py pruebas/test_preprocesador.py -q` pasó en verde.
+
 Estas evidencias se usaron para actualizar [docs/evaluacion_academica.md](docs/evaluacion_academica.md) y la ruta compacta del proyecto.
 
 ---
@@ -388,7 +395,7 @@ El proyecto sigue una metodología en espiral de 5 sprints. Estado actual:
 |---|---|---|
 | Sprint 1 | Arquitectura base y contratos de interfaz | ✅ Completo |
 | Sprint 2 | Pipeline de datos real y modelos supervisados | ⚠️ 8/10 tickets completos |
-| Sprint 3 | Fenotipado metabólico (K-Means) y dashboard Streamlit | ❌ Pendiente |
+| Sprint 3 | Fenotipado metabólico (K-Means) y dashboard Streamlit | ⚠️ En curso (I4 e I5 ya implementados) |
 | Sprint 4 | Reporte académico, Docker, CI/CD | ❌ Pendiente |
 | Sprint 5 | Observabilidad, endurecimiento y documentación final | ❌ Pendiente |
 
