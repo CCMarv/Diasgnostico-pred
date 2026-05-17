@@ -1,0 +1,94 @@
+{
+  "version": "modelo_diabetes_v20260517_050900.joblib",
+  "timestamp": "20260517_050900",
+  "mejor_modelo": "gbm",
+  "modelos": {
+    "svm": {
+      "nombre_modelo": "svm",
+      "roc_auc": 0.725625,
+      "pr_auc": 0.7479727947116974,
+      "sensibilidad": 0.65,
+      "especificidad": 0.625,
+      "f1_clase_positiva": 0.6419753086419753,
+      "brier_score": 0.21489679717462132,
+      "accuracy": 0.6375,
+      "matriz_confusion": [
+        [
+          25,
+          15
+        ],
+        [
+          14,
+          26
+        ]
+      ]
+    },
+    "arbol": {
+      "nombre_modelo": "arbol",
+      "roc_auc": 0.7,
+      "pr_auc": 0.6813826275895243,
+      "sensibilidad": 0.575,
+      "especificidad": 0.7,
+      "f1_clase_positiva": 0.6133333333333333,
+      "brier_score": 0.2548379695551432,
+      "accuracy": 0.6375,
+      "matriz_confusion": [
+        [
+          28,
+          12
+        ],
+        [
+          17,
+          23
+        ]
+      ]
+    },
+    "gbm": {
+      "nombre_modelo": "gbm",
+      "roc_auc": 0.740625,
+      "pr_auc": 0.7380973639460339,
+      "sensibilidad": 0.75,
+      "especificidad": 0.675,
+      "f1_clase_positiva": 0.7228915662650602,
+      "brier_score": 0.22241163744854392,
+      "accuracy": 0.7125,
+      "matriz_confusion": [
+        [
+          27,
+          13
+        ],
+        [
+          10,
+          30
+        ]
+      ]
+    },
+    "mlp": {
+      "nombre_modelo": "mlp",
+      "roc_auc": 0.654375,
+      "pr_auc": 0.6689093379453435,
+      "sensibilidad": 0.55,
+      "especificidad": 0.675,
+      "f1_clase_positiva": 0.5866666666666667,
+      "brier_score": 0.23225654067178647,
+      "accuracy": 0.6125,
+      "matriz_confusion": [
+        [
+          27,
+          13
+        ],
+        [
+          18,
+          22
+        ]
+      ]
+    }
+  },
+  "desbalance": {
+    "ratio": 1.0,
+    "pct_clase_0": 0.5,
+    "pct_clase_1": 0.5,
+    "recomendacion": "submuestreo"
+  },
+  "ruta_modelo_versionado": "modelos\\modelo_diabetes_v20260517_050900.joblib"
+}
