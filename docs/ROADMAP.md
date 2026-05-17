@@ -67,6 +67,8 @@ Puntos extra:
 > `SMOTE`, `GridSearchCV` + `StratifiedKFold`, modelos `svm`, `arbol`, `gbm`, `mlp`,
 > y tabla comparativa con ROC-AUC, PR-AUC, sensibilidad, especificidad, F1, Brier y accuracy.
 
+> Los archivos dentro de `reportes/` se consideran salidas derivadas del pipeline. La reconstrucción de un informe parte del JSON crudo y de la síntesis legible, no de editar esos archivos a mano.
+
 | ID | Tarea | Ítem rúbrica | Archivo | Estado |
 |----|-------|--------------|---------|--------|
 | S2-01 | Dataset CDC BRFSS 2015 disponible | B2 | `datos/brutos/diabetes_binary_health_indicators_BRFSS2015.csv` | ✅ |
@@ -157,13 +159,15 @@ streamlit run dashboard/app.py
 
 | ID | Tarea | Componente rúbrica | Archivo | Estado |
 |----|-------|--------------------|---------|--------|
-| S5-01 | Reporte principal: introducción y planteamiento del problema | Reporte 20% | `reportes/reporte_final.md` | ⬜ |
-| S5-02 | Reporte: metodología (pipeline, modelos, métricas, decisiones técnicas) | Reporte 20% | `reportes/reporte_final.md` | ⬜ |
-| S5-03 | Reporte: resultados con visualizaciones (curvas ROC, PR, matriz de confusión) | Reporte 20%, Resultados 30% | `reportes/reporte_final.md` | ⬜ |
-| S5-04 | Reporte: conclusiones y limitaciones del proyecto | Reporte 20% | `reportes/reporte_final.md` | ⬜ |
+| S5-01 | Reporte principal: introducción y planteamiento del problema | Reporte 20% | `reportes/reporte_final.md` generado desde la corrida | ⬜ |
+| S5-02 | Reporte: metodología (pipeline, modelos, métricas, decisiones técnicas) | Reporte 20% | `reportes/reporte_final.md` generado desde la corrida | ⬜ |
+| S5-03 | Reporte: resultados con visualizaciones (curvas ROC, PR, matriz de confusión) | Reporte 20%, Resultados 30% | `reportes/reporte_final.md` generado desde la corrida | ⬜ |
+| S5-04 | Reporte: conclusiones y limitaciones del proyecto | Reporte 20% | `reportes/reporte_final.md` generado desde la corrida | ⬜ |
 | S5-05 | Preparar guía de ejecución del demo (`README_demo.md`) | Presentación 10% | `README_demo.md` | ⬜ |
 | S5-06 | Ensayo de defensa: respuestas preparadas a preguntas típicas del temario | Presentación 10% | `docs/preguntas_defensa.md` | ⬜ |
 | S5-07 | Verificación final: ejecutar pipeline, dashboard y pruebas sin errores | Todos | — | ⬜ |
+
+**Nota operativa:** si se necesita regenerar un reporte, el flujo correcto es ejecutar el pipeline para obtener el JSON crudo y luego usar `scripts/generar_reporte_legible.py` para producir el Markdown.
 
 **Validación de cierre de Sprint 5:**
 ```bash
