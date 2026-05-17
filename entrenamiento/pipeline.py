@@ -6,6 +6,7 @@ import logging
 import json
 import sys
 import threading
+import time
 from pathlib import Path
 from collections.abc import Callable
 
@@ -125,27 +126,39 @@ def _ejecutar_flujo_clasificacion(
     ruta_reporte_legible: Path,
     modelos_a_entrenar: list[str] | None,
 ) -> dict[str, float | str | dict]:
+    tiempo_inicio_total = time.perf_counter()
+    tiempos: dict[str, float] = {}
+
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Cargando dataset con objetivo")
     df = cargador.cargar(ruta_dataset=ruta_dataset, incluir_objetivo=True)
     _LOG.info("Dataset cargado: %s filas, %s columnas", *df.shape)
+    tiempos["carga_dataset"] = time.perf_counter() - inicio_etapa
 
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Limpiando dataset y convirtiendo a numérico")
     df_limpio = df.apply(pd.to_numeric, errors="coerce").dropna().reset_index(drop=True)
+    tiempos["limpieza"] = time.perf_counter() - inicio_etapa
 
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Persistiendo dataset procesado")
     try:
         cargador.persistir_procesado(df_limpio, ruta_destino=RUTA_DATASET_PROCESADO)
         _LOG.info("Dataset procesado persistido en %s", RUTA_DATASET_PROCESADO)
     except Exception as exc:  # pragma: no cover - logging only
         _LOG.warning("No fue posible persistir dataset procesado: %s", exc)
+    tiempos["persistencia_procesado"] = time.perf_counter() - inicio_etapa
 
     x = df_limpio[list(COLUMNAS_CDC)].copy()
     y = df_limpio[COLUMNA_OBJETIVO].copy()
 
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Calculando desbalance de clases")
     desbalance = cargador.detectar_desbalance(y)
     _LOG.info("Desbalance detectado: %s", desbalance)
+    tiempos["desbalance"] = time.perf_counter() - inicio_etapa
 
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Dividiendo train y test de forma estratificada")
     x_ent, x_pru, y_ent, y_pru = train_test_split(
         x,
@@ -155,15 +168,20 @@ def _ejecutar_flujo_clasificacion(
         stratify=y,
     )
     _LOG.info("Partición generada: train=%d, test=%d", len(x_ent), len(x_pru))
+    tiempos["division_train_test"] = time.perf_counter() - inicio_etapa
+
     modelos_objetivo = _resolver_modelos_a_entrenar(modelos_a_entrenar)
     _LOG.info("Entrenando modelos: %s", ",".join(modelos_objetivo) if modelos_objetivo else "todos")
+    inicio_etapa = time.perf_counter()
     resultados = comparador.entrenar_clasificacion(
         x_ent,
         y_ent,
         modelos_a_entrenar=modelos_objetivo,
         informar_progreso=monitor.actualizar,
     )
+    tiempos["entrenamiento_modelos"] = time.perf_counter() - inicio_etapa
 
+    inicio_etapa = time.perf_counter()
     evaluaciones = []
     total_resultados = len(resultados)
     for indice, resultado in enumerate(resultados, start=1):
@@ -179,7 +197,9 @@ def _ejecutar_flujo_clasificacion(
         except Exception:
             _LOG.info("Resultado %s evaluado (no disponible ROC-AUC).", resultado.nombre)
         evaluaciones.append((resultado, evaluacion))
+    tiempos["evaluacion_modelos"] = time.perf_counter() - inicio_etapa
 
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Seleccionando mejor modelo y generando gráficas")
     mejor_resultado, _ = max(evaluaciones, key=lambda item: item[1].roc_auc)
     evaluador.graficar_curvas(
@@ -221,6 +241,9 @@ def _ejecutar_flujo_clasificacion(
     guardar_reporte_legible(reporte_legible, ruta_reporte_legible)
     _LOG.info("Reporte crudo escrito en %s", ruta_reporte)
     _LOG.info("Reporte legible escrito en %s", ruta_reporte_legible)
+    tiempos["generacion_artefactos"] = time.perf_counter() - inicio_etapa
+    tiempos["total"] = time.perf_counter() - tiempo_inicio_total
+    metricas["tiempos_segundos"] = tiempos
     return metricas
 
 
@@ -234,15 +257,28 @@ def _ejecutar_flujo_clustering(
     ruta_dataset: Path | None,
     n_clusters: int,
 ) -> dict[str, float | str | dict]:
+    tiempo_inicio_total = time.perf_counter()
+    tiempos: dict[str, float] = {}
+
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Cargando dataset para clustering")
     df = cargador.cargar(ruta_dataset=ruta_dataset, incluir_objetivo=False)
     _LOG.info("Dataset cargado para clustering: %s filas, %s columnas", *df.shape)
+    tiempos["carga_dataset"] = time.perf_counter() - inicio_etapa
+
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Aplicando limpieza básica")
     limpio = cargador.limpieza_basica(df)
     _LOG.info("Limpieza básica completada: %d filas", len(limpio))
+    tiempos["limpieza"] = time.perf_counter() - inicio_etapa
+
+    inicio_etapa = time.perf_counter()
     monitor.actualizar("Entrenando K-Means")
     mejor = comparador.entrenar_clustering(limpio.to_numpy(), n_clusters=n_clusters)
     _LOG.info("Mejor clustering: %s (puntaje=%.4f)", mejor.nombre, mejor.puntaje)
+    tiempos["entrenamiento"] = time.perf_counter() - inicio_etapa
+
+    inicio_etapa = time.perf_counter()
     ruta_modelo.parent.mkdir(parents=True, exist_ok=True)
     ruta_reporte.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(mejor.modelo, ruta_modelo)
@@ -258,6 +294,9 @@ def _ejecutar_flujo_clustering(
     guardar_reporte_legible(reporte_legible, ruta_reporte_legible)
     _LOG.info("Reporte crudo escrito en %s", ruta_reporte)
     _LOG.info("Reporte legible escrito en %s", ruta_reporte_legible)
+    tiempos["generacion_artefactos"] = time.perf_counter() - inicio_etapa
+    tiempos["total"] = time.perf_counter() - tiempo_inicio_total
+    metricas["tiempos_segundos"] = tiempos
     return metricas
 
 
