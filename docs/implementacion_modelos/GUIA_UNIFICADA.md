@@ -21,8 +21,10 @@ Esta es la **referencia central única** para entender cómo todos los modelos e
 Esta guía está organizada en capas:
 
 - **Capas 1-8:** Describen el flujo común de todos los modelos (con variaciones según tipo)
--- **Referencia a modelos específicos:** Cada sección incluye enlaces a `modelos/{nombre}-especifico.md`
--- **Material histórico:** Las explicaciones didácticas originales han sido resumidas e integradas en este documento.
+- **Referencia a modelos específicos:** Cada sección incluye enlaces a `modelos/{nombre}-especifico.md`
+- **Material histórico:** Las explicaciones didácticas originales han sido resumidas e integradas en este documento.
+
+Además, el repositorio ya cuenta con los helpers formales `FenotipadoKMeans` (`entrenamiento/fenotipado.py`) y `OptimizadorHiperparametros` (`entrenamiento/optimizador.py`) para que el flujo descrito aquí tenga una implementación concreta y testeada.
 
 Puedes leer esta guía completa de principio a fin, o saltear directamente a la capa que necesites.
 
