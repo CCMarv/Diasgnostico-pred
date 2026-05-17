@@ -117,7 +117,15 @@ Si el entrenamiento tarda demasiado, eso es esperable en el estado actual; lo im
 python -m entrenamiento.pipeline --modo clasificacion
 ```
 
-Esto descarga el dataset CDC BRFSS 2015 desde UCI ML Repository (si no existe), ejecuta el pipeline completo y guarda:
+Nota: el pipeline **no** descarga automáticamente el dataset. Si todavía no tiene el CSV en `datos/brutos/`, primero ejecute el descargador:
+
+```bash
+python -c "from entrenamiento.descargador_dataset import descargar_y_persistir; descargar_y_persistir()"
+```
+
+Alternativamente puede pasar la ruta al CSV con `--dataset datos/brutos/mi_csv.csv`. El comando anterior descargará el dataset CDC BRFSS 2015 desde UCI ML Repository y lo guardará en `datos/brutos/`.
+
+Después de disponer del CSV, ejecute el pipeline para entrenar y generar artefactos:
 
 - `modelos/modelo_diabetes_v1.joblib` — pipeline serializado listo para inferencia
 - `reportes/metricas_sprint1.json` — métricas de todos los modelos evaluados
