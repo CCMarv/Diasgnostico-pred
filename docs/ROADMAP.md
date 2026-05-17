@@ -87,7 +87,7 @@ Puntos extra:
 
 ## Sprint 3 — K-Means, optimización e hiperparámetros
 
-**Estado: ⬜ Pendiente**
+**Estado: ⚠️ En progreso**
 **Ítems de rúbrica cubiertos: I1, I2, I3, I4, I5 → parcial de Nivel Intermedio**
 **Prerequisito:** Sprint 2 validado ✅
 
@@ -98,12 +98,12 @@ Puntos extra:
 | ID | Tarea | Ítem rúbrica | Archivo | Estado |
 |----|-------|--------------|---------|--------|
 | S3-01 | Verificar que SVM, Árbol y MLP se evalúan con las mismas métricas que GBM | I1, I2, I3 | `entrenamiento/comparador_modelos.py` | ⬜ |
-| S3-02 | K-Means con `init='k-means++'`, método del codo y `silhouette_score` | I4 | `entrenamiento/fenotipado.py` | ⬜ |
+| S3-02 | K-Means con `init='k-means++'`, método del codo y `silhouette_score` | I4 | `entrenamiento/fenotipado.py` | ✅ |
 | S3-03 | Notebook de análisis de fenotipos (visualización de clústeres, interpretación) | I4, Resultados 30% | `notebooks/02_fenotipado_kmeans.ipynb` | ⬜ |
-| S3-04 | `GridSearchCV` con `StratifiedKFold` como módulo formal (ya validado en experimento) | I5 | `entrenamiento/optimizador.py` | ⬜ |
-| S3-05 | Pruebas del fenotipador | Código y Técnica 40% | `pruebas/test_fenotipado.py` | ⬜ |
+| S3-04 | `GridSearchCV` con `StratifiedKFold` como módulo formal (ya validado en experimento) | I5 | `entrenamiento/optimizador.py` | ✅ |
+| S3-05 | Pruebas del fenotipador | Código y Técnica 40% | `pruebas/test_fenotipado.py` | ✅ |
 | S3-06 | Pruebas del optimizador | Código y Técnica 40% | `pruebas/test_optimizador.py` | ⬜ |
-| S3-07 | Cerrar S2-09: persistir `dataset_procesado.parquet` | Resultados 30% | `datos/procesados/dataset_procesado.parquet` | ⬜ |
+| S3-07 | Cerrar S2-09: persistir `dataset_procesado.parquet` | Resultados 30% | `datos/procesados/dataset_procesado.parquet` | ✅ |
 | S3-08 | Cerrar S2-10: documentar contraste regional real | Reporte 20% | `reportes/contraste_regional.md` | ⬜ |
 
 **Validación de cierre de Sprint 3:**
