@@ -26,6 +26,8 @@ Esta guía está organizada en capas:
 
 Además, el repositorio ya cuenta con los helpers formales `FenotipadoKMeans` (`entrenamiento/fenotipado.py`) y `OptimizadorHiperparametros` (`entrenamiento/optimizador.py`) para que el flujo descrito aquí tenga una implementación concreta y testeada.
 
+La salida del entrenamiento sigue una regla de dos capas: primero se guarda un JSON crudo para auditoría y trazabilidad; después se sintetiza un Markdown legible para humanos. Esa síntesis vive en `entrenamiento/generador_reportes.py` y se puede reconstruir con `scripts/generar_reporte_legible.py`.
+
 Puedes leer esta guía completa de principio a fin, o saltear directamente a la capa que necesites.
 
 ---
