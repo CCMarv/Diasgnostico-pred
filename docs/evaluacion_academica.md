@@ -1,9 +1,9 @@
 # Evaluación Académica del Proyecto Final
 <!-- Plantilla gestionada por AcademicoIA v3.1 — no editar manualmente secciones marcadas con [AUTO] -->
 
-**Última actualización:** 2026-05-17
-**Nivel estimado actual:** Básico (hacia Intermedio)
-**Puntos extra acumulados:** 0
+**Última actualización:** 2026-05-18
+**Nivel estimado actual:** Básico completado → Intermedio parcial (sin dashboard)
+**Puntos extra acumulados:** 0 (Dashboard I6 pendiente para desbloquear +15)
 
 ---
 
@@ -14,13 +14,13 @@
 
 | Componente | Peso | Calificación estimada (0-100) | Ponderado | Observaciones |
 |------------|------|-------------------------------|-----------|---------------|
-| **Código y Técnica** | 40% | [0-100] | [peso × cal] | [breve justificación] |
-| **Resultados** | 30% | [0-100] | [peso × cal] | [breve justificación] |
-| **Reporte** | 20% | [0-100] | [peso × cal] | [breve justificación] |
-| **Presentación** | 10% | [0-100] | [peso × cal] | [breve justificación] |
-| **TOTAL BASE** | 100% | — | **[suma ponderados]** | |
-| **Puntos extra (nivel)** | — | — | **[0 / +15 / +30]** | |
-| **CALIFICACIÓN FINAL** | — | — | **[total + extra]** | |
+| **Código y Técnica** | 40% | 78 | 31.2 | Pipeline completo, 4 modelos, KNNImputer + SMOTE activos, 27 tests pasando, type hints en todos los módulos; falta dashboard |
+| **Resultados** | 30% | 68 | 20.4 | 8 métricas por modelo (ROC-AUC, PR-AUC, F1, sensibilidad, especificidad, Brier, accuracy, matriz); falta interpretación cualitativa y muestra académica 2000 registros |
+| **Reporte** | 20% | 35 | 7.0 | Solo reportes automáticos generados por el pipeline; reportes/reporte_final.md pendiente Sprint 5 |
+| **Presentación** | 10% | 30 | 3.0 | Documentación técnica existe; falta README_demo.md, preguntas_defensa.md y demo funcional |
+| **TOTAL BASE** | 100% | — | **61.6** | |
+| **Puntos extra (nivel)** | — | — | **0** | Nivel Intermedio desbloqueado con Dashboard (Sprint 4) |
+| **CALIFICACIÓN FINAL** | — | — | **61.6** | Proyección tras Sprint 4: ~76.6; tras Sprint 6: ~106.6 |
 
 ---
 
@@ -46,14 +46,14 @@
 
 | Requisito | Evidencia en código | Archivo | Estado |
 |-----------|---------------------|---------|--------|
-| SVM implementado y evaluado | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| Árboles de decisión implementados y evaluados | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| Redes neuronales (`MLPClassifier`) implementadas y evaluadas | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| K-Means implementado y evaluado | Implementado como `FenotipadoKMeans` con `silhouette_score` > 0 en datos sintéticos | entrenamiento/fenotipado.py | ✅ |
-| Optimización de hiperparámetros (`GridSearchCV` o `RandomizedSearchCV`) | Implementado `OptimizadorHiperparametros` (GridSearchCV + StratifiedKFold) | entrenamiento/optimizador.py | ✅ |
-| Dashboard interactivo básico (Streamlit u otro) | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
+| SVM implementado y evaluado | `SVC(kernel='rbf', probability=True, class_weight='balanced')` en catálogo `_catalogo_modelos["svm"]`; evaluado con ROC-AUC, PR-AUC, F1, sensibilidad, especificidad | entrenamiento/comparador_modelos.py | ✅ |
+| Árboles de decisión implementados y evaluados | `DecisionTreeClassifier(max_depth=5, class_weight='balanced')` en catálogo `_catalogo_modelos["arbol"]`; evaluado con las mismas 8 métricas | entrenamiento/comparador_modelos.py | ✅ |
+| Redes neuronales (`MLPClassifier`) implementadas y evaluadas | `MLPClassifier(hidden_layer_sizes=(64,32), early_stopping=True)` en catálogo `_catalogo_modelos["mlp"]`; evaluado con las mismas 8 métricas | entrenamiento/comparador_modelos.py | ✅ |
+| K-Means implementado y evaluado | Implementado como `FenotipadoKMeans` con `silhouette_score` > 0 en datos sintéticos; pruebas en `pruebas/test_fenotipado.py` (3 passed) | entrenamiento/fenotipado.py | ✅ |
+| Optimización de hiperparámetros (`GridSearchCV` o `RandomizedSearchCV`) | Implementado `OptimizadorHiperparametros` (GridSearchCV + StratifiedKFold); pruebas en `pruebas/test_optimizador.py` (2 passed) | entrenamiento/optimizador.py | ✅ |
+| Dashboard interactivo básico (Streamlit u otro) | No existe todavía; pendiente Sprint 4 (S4-001 a S4-006) | dashboard/app.py | ❌ pendiente S4 |
 
-**Veredicto Intermedio:** INCOMPLETO — faltan Dashboard (I6) y muestra académica (S3-009)
+**Veredicto Intermedio:** INCOMPLETO — falta Dashboard (I6); todos los demás ítems verificados
 
 ---
 
@@ -63,10 +63,10 @@
 
 | Requisito | Evidencia en código | Archivo | Estado |
 |-----------|---------------------|---------|--------|
-| Sistema en producción — API funcional (FastAPI u otro) | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
-| Comparativa con papers académicos documentada en reporte | [descripción] | [ruta] | ✅ / ❌ / `EVIDENCE_NOT_FOUND` |
+| Sistema en producción — API funcional (FastAPI u otro) | `api/main.py` con endpoints `/salud` y `/predecir` funcionales; estado operativo/degradado consistente; 4 tests de integración pasando | api/main.py | 🟡 Esqueleto funcional — conexión con modelo serializado pendiente S6-001 |
+| Comparativa con papers académicos documentada en reporte | No existe todavía; pendiente Sprint 6 (S6-005, S6-006) | reportes/reporte_final.md | ❌ pendiente S6 |
 
-**Veredicto Avanzado:** [COMPLETADO (+30) / INCOMPLETO — faltantes: X, Y]
+**Veredicto Avanzado:** INCOMPLETO — faltantes: conexión API con modelo real (S6-001) y comparativa papers (S6-005/006)
 
 ---
 
@@ -78,17 +78,23 @@
 
 | Criterio | Peso dentro del componente | Estado | Notas |
 |----------|---------------------------|--------|-------|
-| El pipeline usa `sklearn.pipeline.Pipeline` o `imblearn.pipeline.Pipeline` | Alto | [✅/❌] | [notas] |
-| No hay fuga de datos (fit solo en train, no en test) | Alto | [✅/❌] | [notas] |
-| Las técnicas del temario se usan en el contexto correcto | Alto | [✅/❌] | [notas] |
-| El código tiene type hints y sigue PEP-8 | Medio | [✅/❌] | [notas] |
-| Las funciones y clases tienen docstrings | Medio | [✅/❌] | [notas] |
-| Los módulos están organizados con responsabilidad única | Medio | [✅/❌] | [notas] |
-| Existe `requirements.txt` o `pyproject.toml` con dependencias | Bajo | [✅/❌] | [notas] |
-| Las pruebas unitarias cubren al menos el pipeline principal | Bajo | [✅/❌] | [notas] |
+| El pipeline usa `sklearn.pipeline.Pipeline` o `imblearn.pipeline.Pipeline` | Alto | ✅ | `ImbPipeline` activo cuando `use_smote=True`; `Pipeline` estándar como fallback; ambos serializables con joblib |
+| No hay fuga de datos (fit solo en train, no en test) | Alto | ✅ | `ColumnTransformer` ajustado exclusivamente en `X_train`; verificado por `test_preprocesador.py::test_pipeline_no_filtra_estadisticas_de_test` |
+| Las técnicas del temario se usan en el contexto correcto | Alto | ✅ | `KNNImputer` y `SMOTE` activos por defecto en el flujo estándar desde Issue #15; `GridSearchCV+StratifiedKFold` en `optimizador.py` y búsqueda de SVM |
+| El código tiene type hints y sigue PEP-8 | Medio | ✅ | `from __future__ import annotations` en todos los módulos; tipado estricto en firmas públicas |
+| Las funciones y clases tienen docstrings | Medio | ✅ | Docstrings en español en todas las clases y métodos públicos de `entrenamiento/` y `api/` |
+| Los módulos están organizados con responsabilidad única | Medio | ✅ | `cargador_datos`, `preprocesador`, `comparador_modelos`, `evaluador`, `fenotipado`, `optimizador`, `predictor` — cada módulo con una única responsabilidad |
+| Existe `requirements.txt` o `pyproject.toml` con dependencias | Bajo | ✅ | `pyproject.toml` con todas las dependencias incluida `imbalanced-learn>=0.12.0` (añadida Issue #13) |
+| Las pruebas unitarias cubren al menos el pipeline principal | Bajo | ✅ | 27 tests pasando: `test_api` (4), `test_cargador` (5), `test_comparador` (4), `test_fenotipado` (3), `test_optimizador` (2), `test_predictor` (2), `test_preprocesador` (4), `test_descargador_dataset` (3) |
 
-**Puntos fuertes:** [lista]
-**Áreas de mejora:** [lista]
+**Puntos fuertes:**
+- Separación clara de responsabilidades; cada módulo puede probarse de forma aislada
+- Contrato de no-leakage verificado por test automatizado (no solo por diseño)
+- Todos los módulos usan type hints completos
+
+**Áreas de mejora:**
+- Dashboard (I6) aún pendiente — bloquea +15 puntos extra
+- Los docstrings no siguen uniformemente el estilo NumPy/Google; algunos son descriptivos pero no tienen sección `Args`/`Returns` explícita
 
 ---
 
@@ -98,16 +104,22 @@
 
 | Criterio | Peso dentro del componente | Estado | Notas |
 |----------|---------------------------|--------|-------|
-| Se reportan métricas más allá de accuracy (PR-AUC, ROC-AUC, F1) | Alto | [✅/❌] | [notas] |
-| Se comparan al menos 3 modelos con las mismas métricas | Alto | [✅/❌] | [notas] |
-| Se interpreta por qué un modelo supera a otro (no solo números) | Alto | [✅/❌] | [notas] |
-| La elección del modelo final está justificada con métricas | Medio | [✅/❌] | [notas] |
-| Se analiza el impacto del desbalance de clases si aplica | Medio | [✅/❌] | [notas] |
-| Se reportan intervalos de confianza o desviación estándar entre pliegues | Bajo | [✅/❌] | [notas] |
+| Se reportan métricas más allá de accuracy (PR-AUC, ROC-AUC, F1) | Alto | ✅ | `evaluador.py` calcula: ROC-AUC, PR-AUC, F1 clase positiva, sensibilidad, especificidad, Brier Score, accuracy y matriz de confusión |
+| Se comparan al menos 3 modelos con las mismas métricas | Alto | ✅ | 4 modelos (SVM, Árbol, GBM, MLP) evaluados con idénticas 8 métricas; verificado por `test_comparador.py` (4 casos parametrizados) |
+| Se interpreta por qué un modelo supera a otro (no solo números) | Alto | ❌ | El log reporta ROC-AUC por modelo pero no existe texto en el reporte final explicando las diferencias clínicas; pendiente S5-003 |
+| La elección del modelo final está justificada con métricas | Medio | ✅ | Política explícita: serializar el modelo con mayor ROC-AUC; desde Issue #16 también se reporta mejor modelo por PR-AUC y se logguea si difieren |
+| Se analiza el impacto del desbalance de clases si aplica | Medio | ✅ | `CargadorDatos.detectar_desbalance` cuantifica el ratio; SMOTE activo en entrenamiento; PR-AUC como métrica principal para clases desbalanceadas |
+| Se reportan intervalos de confianza o desviación estándar entre pliegues | Bajo | 🟡 | ROC-AUC por fold disponible en logs; no se calcula `std` explícitamente en el JSON de reporte |
 
-**Mejor modelo actual:** [nombre] con [métrica principal] = [valor]
-**Puntos fuertes:** [lista]
-**Áreas de mejora:** [lista]
+**Mejor modelo actual:** GBM con ROC-AUC=0.875 (muestra smoke 40 registros — resultados académicos definitivos pendientes muestra S3-009 de 2000 registros)
+
+**Puntos fuertes:**
+- 8 métricas calculadas automáticamente para cada modelo
+- PR-AUC reportada junto a ROC-AUC (sensible a desbalance)
+
+**Áreas de mejora:**
+- Falta interpretación narrativa de resultados (prevista en S5-003)
+- Desviación estándar entre folds no está en el JSON de reporte
 
 ---
 
@@ -117,15 +129,20 @@
 
 | Criterio | Peso dentro del componente | Estado | Notas |
 |----------|---------------------------|--------|-------|
-| El reporte tiene estructura clara (intro, metodología, resultados, conclusión) | Alto | [✅/❌] | [notas] |
-| Los hallazgos principales se presentan con visualizaciones | Alto | [✅/❌] | [notas] |
-| La metodología explica por qué se eligió cada técnica del temario | Medio | [✅/❌] | [notas] |
-| Las conclusiones responden la pregunta del proyecto | Medio | [✅/❌] | [notas] |
-| El lenguaje es técnicamente preciso y consistente | Bajo | [✅/❌] | [notas] |
+| El reporte tiene estructura clara (intro, metodología, resultados, conclusión) | Alto | ❌ | `reportes/reporte_final.md` no existe todavía; pendiente Sprint 5 (S5-001 a S5-004) |
+| Los hallazgos principales se presentan con visualizaciones | Alto | 🟡 | Curvas ROC, PR y calibración generadas automáticamente en `reportes/`; aún no integradas en un reporte narrativo |
+| La metodología explica por qué se eligió cada técnica del temario | Medio | ❌ | Pendiente S5-002 |
+| Las conclusiones responden la pregunta del proyecto | Medio | ❌ | Pendiente S5-004 |
+| El lenguaje es técnicamente preciso y consistente | Bajo | ❌ | Pendiente revisión al redactar S5-001 a S5-004 |
 
-**Ruta del reporte principal:** [ruta/reporte.md o .pdf]
-**Puntos fuertes:** [lista]
-**Áreas de mejora:** [lista]
+**Ruta del reporte principal:** `reportes/reporte_final.md` (pendiente Sprint 5)
+
+**Puntos fuertes:**
+- Reportes automáticos en `reportes/metricas_sprint1.json` y `.md` generados por el pipeline
+- Visualizaciones de curvas ROC, PR y calibración disponibles
+
+**Áreas de mejora:**
+- Falta el reporte académico narrativo completo (el más importante para este componente)
 
 ---
 
@@ -135,13 +152,18 @@
 
 | Criterio | Peso dentro del componente | Estado | Notas |
 |----------|---------------------------|--------|-------|
-| Hay una demo funcional (dashboard, notebook ejecutado o API) | Alto | [✅/❌] | [notas] |
-| El equipo puede explicar las decisiones técnicas con claridad | Alto | [✅/❌] | [notas] |
-| Se preparan respuestas para preguntas típicas del temario | Medio | [✅/❌] | [notas] |
+| Hay una demo funcional (dashboard, notebook ejecutado o API) | Alto | ❌ | Dashboard no existe; API funciona pero no está documentada para demo; pendiente Sprint 4 y S5-005 |
+| El equipo puede explicar las decisiones técnicas con claridad | Alto | ✅ | Documentación técnica detallada en `docs/implementacion_modelos/` con justificación de cada modelo |
+| Se preparan respuestas para preguntas típicas del temario | Medio | ❌ | `docs/preguntas_defensa.md` no existe; pendiente S5-006 |
 
-**Artefacto de demo:** [ruta o comando para ejecutar]
-**Puntos fuertes:** [lista]
-**Áreas de mejora:** [lista]
+**Artefacto de demo:** pendiente — `streamlit run dashboard/app.py` (Sprint 4) y `uvicorn api.main:app` (Sprint 6)
+
+**Puntos fuertes:**
+- Documentación técnica detallada por modelo disponible para consulta en defensa
+
+**Áreas de mejora:**
+- Crear `README_demo.md` con comandos copiables (S5-005)
+- Preparar preguntas de defensa (S5-006)
 
 ---
 
@@ -153,22 +175,22 @@
 
 | Técnica | Clase/función | Archivo esperado | Estado |
 |---------|---------------|------------------|--------|
-| `Pipeline` | `sklearn.pipeline.Pipeline` | `entrenamiento/preprocesador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| `ColumnTransformer` | `sklearn.compose.ColumnTransformer` | `entrenamiento/preprocesador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Imputación multivariable | `KNNImputer` | `entrenamiento/preprocesador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Codificación robusta | `TargetEncoder` o `HashingEncoder` | `entrenamiento/preprocesador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Transformación de potencia | `PowerTransformer(method='yeo-johnson')` | `entrenamiento/preprocesador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Gestión del desbalance | `SMOTE` o `NearMiss` | `entrenamiento/preprocesador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Métricas de desbalance | PR-AUC, ROC-AUC | `entrenamiento/evaluador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
+| `Pipeline` | `sklearn.pipeline.Pipeline` | `entrenamiento/preprocesador.py` | ✅ |
+| `ColumnTransformer` | `sklearn.compose.ColumnTransformer` | `entrenamiento/preprocesador.py` | ✅ |
+| Imputación multivariable | `KNNImputer` | `entrenamiento/preprocesador.py` | ✅ activo por defecto desde Issue #15 |
+| Codificación robusta | `TargetEncoder` o `HashingEncoder` | `entrenamiento/preprocesador.py` | Fuera de alcance — no listado en ProgramaMateria.md §Niveles B/I/A |
+| Transformación de potencia | `PowerTransformer(method='yeo-johnson')` | `entrenamiento/preprocesador.py` | Fuera de alcance — no listado en ProgramaMateria.md §Niveles B/I/A |
+| Gestión del desbalance | `SMOTE` o `NearMiss` | `entrenamiento/preprocesador.py` | ✅ `SMOTE` activo por defecto desde Issue #15; `imbalanced-learn>=0.12.0` declarado en `pyproject.toml` |
+| Métricas de desbalance | PR-AUC, ROC-AUC | `entrenamiento/evaluador.py` | ✅ |
 
 ### Unidad 2 — Aprendizaje Supervisado
 
 | Técnica | Clase/función | Archivo esperado | Estado |
 |---------|---------------|------------------|--------|
-| SVM | `SVC(kernel='rbf')` | `entrenamiento/comparador_modelos.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Árboles de decisión | `DecisionTreeClassifier` | `entrenamiento/comparador_modelos.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Random Forest | `RandomForestClassifier` | `entrenamiento/comparador_modelos.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Gradient Boosting | `GradientBoostingClassifier` o `XGBClassifier` | `entrenamiento/comparador_modelos.py` | [✅/`EVIDENCE_NOT_FOUND`] |
+| SVM | `SVC(kernel='rbf')` | `entrenamiento/comparador_modelos.py` | ✅ |
+| Árboles de decisión | `DecisionTreeClassifier` | `entrenamiento/comparador_modelos.py` | ✅ |
+| Random Forest | `RandomForestClassifier` | `entrenamiento/comparador_modelos.py` | Fuera de alcance — explícitamente excluido en `docs/PLAN_CORRECIONES.md` (no figura en lista del Nivel Intermedio) |
+| Gradient Boosting | `GradientBoostingClassifier` o `XGBClassifier` | `entrenamiento/comparador_modelos.py` | ✅ `GradientBoostingClassifier` (Unidad 2.3 del temario) |
 
 ### Unidad 3 — No Supervisado
 
@@ -181,9 +203,9 @@
 
 | Técnica | Clase/función | Archivo esperado | Estado |
 |---------|---------------|------------------|--------|
-| Búsqueda de hiperparámetros | `GridSearchCV` o `RandomizedSearchCV` | `entrenamiento/optimizador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Validación cruzada estratificada | `StratifiedKFold` | `entrenamiento/optimizador.py` | [✅/`EVIDENCE_NOT_FOUND`] |
-| Red neuronal | `MLPClassifier` | `entrenamiento/comparador_modelos.py` | [✅/`EVIDENCE_NOT_FOUND`] |
+| Búsqueda de hiperparámetros | `GridSearchCV` o `RandomizedSearchCV` | `entrenamiento/optimizador.py` | ✅ `GridSearchCV` en `OptimizadorHiperparametros` y búsqueda manual de SVM en `comparador_modelos.py` |
+| Validación cruzada estratificada | `StratifiedKFold` | `entrenamiento/optimizador.py` | ✅ en `optimizador.py` y `comparador_modelos.py` |
+| Red neuronal | `MLPClassifier` | `entrenamiento/comparador_modelos.py` | ✅ `MLPClassifier(hidden_layer_sizes=(64,32), early_stopping=True)` |
 
 ---
 
@@ -194,6 +216,7 @@
 | Fecha | Cambio | Nivel anterior → nuevo | Responsable |
 |-------|--------|------------------------|-------------|
 | 2026-05-17 | Implementado `FenotipadoKMeans` con pruebas unitarias; implementado `OptimizadorHiperparametros` con pruebas; ejecución de la muestra mínima de estabilidad y pruebas pasadas. Suite de pruebas `pruebas/` ejecutada: 20 passed. | Básico → Básico (hacia Intermedio) | AcademicoIA |
+| 2026-05-18 | Completada auditoría de evidencia: issues #9 (API salud), #11 (loky), #13 (imbalanced-learn), #14 (test_comparador), #15 (KNNImputer+SMOTE activos), #16 (validación CSV + PR-AUC). Suite: 27 passed. Reemplazados todos los placeholders con estado real observado en código. | Básico → Básico completado (Intermedio parcial sin dashboard) | AcademicoIA |
 
 ---
 
@@ -202,16 +225,15 @@
 > Lista priorizada de lo que falta para subir de nivel. Ordenada por impacto en rúbrica.
 
 ### Bloqueantes para Nivel Básico
-- [ ] [acción concreta] → archivo a modificar: `[ruta]`
+- Ninguno — Nivel Básico COMPLETADO ✅
 
 ### Bloqueantes para Nivel Intermedio (+15)
-- [x] K-Means implementado — archivo: `entrenamiento/fenotipado.py`
-- [ ] Dashboard interactivo — ejecutar con `streamlit run dashboard/app.py`
-- [ ] [otras acciones]
+- [ ] **Dashboard interactivo (I6)** — crear `dashboard/app.py` con Streamlit; ejecutar con `streamlit run dashboard/app.py` → Sprint 4 (S4-001 a S4-006)
+- [ ] **Muestra académica 2000 registros** — ejecutar pipeline con 2000 registros estratificados y ROC-AUC ≥ 0.70 → S3-009
 
 ### Bloqueantes para Nivel Avanzado (+30)
-- [ ] API en producción — `uvicorn api.main:app`
-- [ ] Comparativa con al menos 1 paper académico en el reporte
+- [ ] **API conectada con modelo real** — S6-001: verificar que `lifespan` carga `modelo_diabetes_v1.joblib` y `predictor.esta_listo()` = True
+- [ ] **Comparativa con papers** — S6-005/006: tabla comparativa en `reportes/reporte_final.md` con ≥ 2 papers
 
 ---
 
@@ -220,16 +242,16 @@
 > El agente genera esta sección para preparar al equipo para la defensa oral.
 
 1. **¿Por qué usaron `Pipeline` en lugar de transformar directamente?**
-   → [respuesta basada en evidencia del proyecto]
+   → Porque el `Pipeline` empaqueta preprocesamiento + clasificador en un solo artefacto serializable. Así, cuando la API carga `modelo_diabetes_v1.joblib`, el modelo ya "sabe" cómo transformar los datos de entrada sin pasos manuales adicionales. Evidencia: `entrenamiento/preprocesador.py:construir_pipeline` y `inferencia/predictor.py:predecir`.
 
 2. **¿Cómo manejaron el desbalance de clases?**
-   → [respuesta basada en evidencia del proyecto]
+   → Con dos estrategias complementarias: (1) `SMOTE` dentro del `ImbPipeline` — genera muestras sintéticas de la clase minoritaria solo sobre datos de entrenamiento, nunca sobre test, garantizando que no hay data leakage; (2) PR-AUC como métrica principal, que es más informativa que ROC-AUC cuando hay desbalance (~86% sano vs ~14% diabético). Evidencia: `entrenamiento/preprocesador.py:construir_pipeline` y `entrenamiento/evaluador.py:calcular_metricas`.
 
-3. **¿Por qué eligieron [modelo final] como el modelo principal?**
-   → [respuesta basada en métricas reportadas]
+3. **¿Por qué eligieron GBM como el modelo principal?**
+   → En la muestra actual, GBM obtiene el mayor ROC-AUC. La política del proyecto es serializar el modelo con mayor ROC-AUC (criterio clínico: maximizar la capacidad de discriminar entre sanos y diabéticos). Desde Issue #16, el pipeline también reporta el mejor modelo por PR-AUC y advierte si difieren. Evidencia: `entrenamiento/pipeline.py:_ejecutar_flujo_clasificacion` y `reportes/metricas_sprint1.json`.
 
 4. **¿Qué es el coeficiente de silueta y cómo lo usaron en K-Means?**
-   → [respuesta basada en evidencia del proyecto]
+   → El coeficiente de silueta mide qué tan bien separados están los clústeres: valores cerca de 1 indican clústeres compactos y bien separados; cerca de -1 indica solapamiento. En `FenotipadoKMeans.calcular_silhouette` se calcula para el conjunto de datos de entrenamiento con el K óptimo seleccionado por el método del codo (`graficar_codo`). Se usa para validar que los fenotipos de pacientes identificados son estadísticamente coherentes. Evidencia: `entrenamiento/fenotipado.py` y `pruebas/test_fenotipado.py`.
 
 5. **¿Cómo evitaron la fuga de datos (data leakage)?**
-   → [respuesta basada en evidencia del proyecto]
+   → El `ColumnTransformer` (con `KNNImputer`, `StandardScaler` y `OrdinalEncoder`) se ajusta (`fit`) exclusivamente sobre `X_train`. En validación cruzada, cada fold usa `clone(pipeline)` para crear una copia limpia antes del `fit`, evitando que los estadísticos de un fold contaminen a otro. Hay un test automatizado que lo verifica: `pruebas/test_preprocesador.py::test_pipeline_no_filtra_estadisticas_de_test`. Evidencia: `entrenamiento/preprocesador.py:construir` y `entrenamiento/comparador_modelos.py:_evaluar_un_fold`.
