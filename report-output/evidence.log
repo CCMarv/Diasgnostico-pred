@@ -1,0 +1,99 @@
+[2026-05-18] EVIDENCIA DE CONSTRUCCIÓN DEL REPORTE
+
+Repositorio analizado:
+- /home/runner/work/Diasgnostico-pred/Diasgnostico-pred
+
+Archivos consultados (principales):
+- README.md
+- PROYECTO.md
+- pyproject.toml
+- Makefile
+- config.py
+- entrenamiento/pipeline.py
+- entrenamiento/comparador_modelos.py
+- entrenamiento/preprocesador.py
+- entrenamiento/fenotipado.py
+- entrenamiento/optimizador.py
+- inferencia/predictor.py
+- api/main.py
+- api/esquemas.py
+- dashboard/app.py
+- reportes/reporte_final.md
+- resultados/LOG_CORRIDAS.md
+- resultados/corrida_10k/corrida_10k.json
+- resultados/corrida_50k/corrida_50k.json
+- resultados/corrida_50k/corrida_50k.md
+- notebooks/01_eda_regionalizado.ipynb
+- notebooks/02_fenotipado_kmeans.ipynb
+
+Comandos ejecutados y resultado:
+1) Validación inicial de tests
+   comando: python -m pytest
+   resultado: ERROR
+   salida clave: /usr/bin/python: No module named pytest
+
+2) Validación inicial de lint
+   comando: make lint
+   resultado: ERROR
+   salida clave: /usr/bin/python: No module named flake8
+
+3) Instalación de dependencias
+   comando: pip install -e .[dev]
+   resultado: OK
+
+4) Re-ejecución de tests
+   comando: python -m pytest
+   resultado: OK
+   salida clave: 29 passed, 2 warnings in 8.01s
+
+5) Re-ejecución de lint
+   comando: make lint
+   resultado: ERROR
+   causa: flake8 no está incluido en dependencias instaladas del proyecto
+
+6) Extracción de evidencia del notebook de fenotipado
+   comando: python - <<'PY' ... (lectura de notebooks/02_fenotipado_kmeans.ipynb) ... PY
+   resultado: OK
+   hallazgos extraídos:
+   - k óptimo = 2
+   - silhouette = 0.585
+   - Fenotipo B = 26.7% diabetes
+   - Fenotipo A = 11.6% diabetes
+   - χ²=1215.7, p<0.001
+
+7) Extracción de evidencia del notebook EDA regionalizado
+   comando: python - <<'PY' ... (lectura de notebooks/01_eda_regionalizado.ipynb) ... PY
+   resultado: OK
+   hallazgos extraídos:
+   - Contraste CDC ↔ México (ENSANUT) documentado
+   - Sesgos reportados en variables de comportamiento/contexto
+
+8) Generación de artefactos del reporte
+   comandos:
+   - mkdir -p report-output/figures report-output/notebooks_processed report-output/deploy
+   - cp resultados/corrida_50k/curvas_gbm.png report-output/figures/curvas_gbm_50k.png
+   - cp resultados/corrida_50k/calibracion_gbm.png report-output/figures/calibracion_gbm_50k.png
+   - cp resultados/corrida_10k/curvas_svm.png report-output/figures/curvas_svm_10k.png
+   - cp resultados/corrida_10k/calibracion_svm.png report-output/figures/calibracion_svm_10k.png
+   - python - <<'PY' ... generación de report-output/metrics.csv y notebooks_processed ... PY
+   resultado: OK
+
+Errores/limitaciones documentadas:
+- Linter no ejecutable por falta de flake8 en entorno actual (`make lint` falla).
+- Dashboard referencia archivos no presentes en snapshot:
+  - reportes/benchmark_*.json
+  - reportes/hallazgos_fenotipado.json
+- No se encontró evidencia de despliegue remoto activo; solo implementación y comandos locales.
+
+Artefactos finales generados:
+- report-output/report.md
+- report-output/README.md
+- report-output/evidence.log
+- report-output/metrics.csv
+- report-output/figures/curvas_gbm_50k.png
+- report-output/figures/calibracion_gbm_50k.png
+- report-output/figures/curvas_svm_10k.png
+- report-output/figures/calibracion_svm_10k.png
+- report-output/notebooks_processed/01_eda_regionalizado_extract.md
+- report-output/notebooks_processed/02_fenotipado_kmeans_extract.md
+- report-output/deploy/links.md
