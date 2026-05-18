@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "fecha": "2026-05-18T14:12:38.255485+00:00",
+    "n_registros": 50000,
+    "k_optimo": 2,
+    "silhouette_score": 0.5853,
+    "muestra_busqueda_k": 5000,
+    "chi2": 1215.75,
+    "p_value_chi2": 0.0
+  },
+  "fenotipos": [
+    {
+      "nombre": "Fenotipo A",
+      "n": 42576,
+      "tasa_diabetes": 0.1156,
+      "tasa_diabetes_pct": 11.6,
+      "top_4_variables": [
+        "BMI",
+        "Age",
+        "Income",
+        "Education"
+      ]
+    },
+    {
+      "nombre": "Fenotipo B",
+      "n": 7424,
+      "tasa_diabetes": 0.267,
+      "tasa_diabetes_pct": 26.7,
+      "top_4_variables": [
+        "BMI",
+        "PhysHlth",
+        "MentHlth",
+        "Age"
+      ]
+    }
+  ]
+}
