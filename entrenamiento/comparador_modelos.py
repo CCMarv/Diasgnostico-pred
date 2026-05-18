@@ -265,7 +265,7 @@ class ComparadorModelos:
         total_folds = cv.get_n_splits()
         particiones = list(cv.split(x_entrenamiento, y_entrenamiento))
 
-        resultados_fold = Parallel(n_jobs=-1, prefer="threads")(
+        resultados_fold = Parallel(n_jobs=-1, backend="loky")(
             delayed(self._evaluar_un_fold)(
                 nombre=nombre,
                 pipeline=pipeline,
