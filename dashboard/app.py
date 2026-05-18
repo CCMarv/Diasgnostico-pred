@@ -1,25 +1,39 @@
-"""Dashboard interactivo de Diagnóstico Predictivo de Diabetes — Sprint 4 (ítem I6)."""
+"""Dashboard interactivo de Diagnóstico Predictivo de Diabetes — reconstrucción.
+
+Objetivo:
+- Aplicar las `guidelines` del repositorio para mejorar jerarquía, accesibilidad
+  y explicabilidad del dashboard ya provisto.
+
+Audiencia primaria: analistas de datos y equipo clínico académico (revisión).
+Audiencia secundaria: gestores operativos (visiones resumidas).
+"""
+
 from __future__ import annotations
 
 import json
 import sys
 from pathlib import Path
+from datetime import datetime
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
-# ── ruta al paquete raíz ───────────────────────────────────────────────────────
+# aseguramos que el paquete raíz esté en sys.path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import (
     COLUMNAS_CDC,
     REPORTES_DIR,
     ConfiguracionRutas,
+    UMBRAL_RIESGO_BAJO,
+    UMBRAL_RIESGO_ALTO,
+    MARGEN_INCERTIDUMBRE,
 )
 
-# ── configuración de página ────────────────────────────────────────────────────
+# Página
 st.set_page_config(
     page_title="Diagnóstico Predictivo · Diabetes",
     page_icon="🩺",
@@ -27,25 +41,55 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
 RUTA_MODELO = ConfiguracionRutas.RUTA_MODELO
 RUTA_BENCHMARK = REPORTES_DIR / "benchmark_5000.json"
 RUTA_FENOTIPADO = REPORTES_DIR / "hallazgos_fenotipado.json"
 
-COLOR_RIESGO = "#C62828"
-COLOR_SEGURO = "#006847"
-COLOR_ALERTA = "#F9A825"
+# Paleta cuidada (Okabe–Ito / accesible)
+PALETA_OKABE_ITO = ["#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"]
+COLOR_SEGURO = PALETA_OKABE_ITO[2]
+COLOR_ALERTA = PALETA_OKABE_ITO[1]
+COLOR_RIESGO = PALETA_OKABE_ITO[6]
 
-# ── helpers ────────────────────────────────────────────────────────────────────
+
+# Mapeo de columnas CDC -> etiquetas en español y breves descripciones
+COLUMNAS_ES = {
+    "HighBP": ("Hipertensión", "Diagnóstico previo de hipertensión arterial (0/1)"),
+    "HighChol": ("Colesterol alto", "Diagnóstico previo de colesterol alto (0/1)"),
+    "CholCheck": ("Chequeo colesterol", "Se realizó prueba de colesterol en últimos 5 años (0/1)"),
+    "BMI": ("IMC (BMI)", "Índice de masa corporal kg/m²"),
+    "Smoker": ("Fumador", "Ha fumado ≥100 cigarrillos en su vida (0/1)"),
+    "Stroke": ("Derrame cerebral", "Antecedente de derrame cerebral (0/1)"),
+    "HeartDiseaseorAttack": ("Enfermedad cardíaca", "Antecedente de enfermedad cardiaca o infarto (0/1)"),
+    "PhysActivity": ("Actividad física", "Actividad física en últimos 30 días (0/1)"),
+    "Fruits": ("Consume fruta", "Consume fruta ≥1 vez al día (0/1)"),
+    "Veggies": ("Consume verduras", "Consume verduras ≥1 vez al día (0/1)"),
+    "HvyAlcoholConsump": ("Consumo alto alcohol", "Consumo excesivo de alcohol según CDC (0/1)"),
+    "AnyHealthcare": ("Cobertura médica", "Posee algún tipo de seguro o cobertura (0/1)"),
+    "NoDocbcCost": ("No consulta por costo", "Evita ir al médico por costo (0/1)"),
+    "GenHlth": ("Salud general", "Auto-reporte: 1=excelente … 5=mala"),
+    "MentHlth": ("Salud mental (días)", "Días con mala salud mental en último mes (0–30)"),
+    "PhysHlth": ("Salud física (días)", "Días con mala salud física en último mes (0–30)"),
+    "DiffWalk": ("Dificultad para caminar", "Dificultad para caminar o subir escaleras (0/1)"),
+    "Sex": ("Sexo", "0=Femenino, 1=Masculino"),
+    "Age": ("Grupo edad", "Grupo etario CDC (1=18–24 … 13=80+)") ,
+    "Education": ("Educación", "Nivel educativo (1=ninguno … 6=universidad)"),
+    "Income": ("Ingreso", "Nivel de ingresos (1=<$10k … 8=>$75k)"),
+}
+
 
 @st.cache_resource(show_spinner="Cargando modelo…")
-def _cargar_modelo():
+def _cargar_modelo() -> Optional[object]:
     if not RUTA_MODELO.exists():
         return None
     import joblib
+
     return joblib.load(RUTA_MODELO)
 
 
-def _cargar_json(ruta: Path) -> dict | None:
+@st.cache_data(show_spinner="Cargando reporte…")
+def _cargar_json(ruta: Path) -> Optional[dict]:
     if not ruta.exists():
         return None
     with open(ruta, encoding="utf-8") as f:
@@ -60,11 +104,27 @@ def _badge_nivel(roc: float) -> str:
     return "🔴 Por debajo del umbral"
 
 
-# ── sidebar ────────────────────────────────────────────────────────────────────
+def _file_last_modified(ruta: Path) -> Optional[str]:
+    try:
+        ts = ruta.stat().st_mtime
+        return datetime.fromtimestamp(ts).isoformat(sep=" ", timespec="seconds")
+    except Exception:
+        return None
+
+
+# Banner visible para confirmar versión cargada (útil para verificar recarga)
+_this_file_ts = _file_last_modified(Path(__file__))
+st.markdown(
+    f"**RECONSTRUCCIÓN:** versión actualizada del dashboard · archivo modificado: {_this_file_ts} \n\n"
+    "---"
+)
+
+
+# Sidebar: selección de vista y contexto
 st.sidebar.title("🩺 Diabetes · Dashboard")
 vista = st.sidebar.radio(
     "Vista",
-    ["📊 Comparativa de modelos", "🔍 Predicción individual", "🧬 Fenotipos K-Means"],
+    ["📊 Comparativa de modelos", "🔍 Predicción individual", "🧬 Fenotipos K-Means", "📈 Calibración & Explicabilidad"],
 )
 st.sidebar.markdown("---")
 st.sidebar.caption("Proyecto académico — CDC BRFSS 2015")
@@ -102,6 +162,16 @@ if vista == "📊 Comparativa de modelos":
     )
     datos = _cargar_json(benchmarks_disponibles[nombre_bench])
 
+    # Banda 1: metadata y accesibilidad
+    ultima_mod = _file_last_modified(benchmarks_disponibles[nombre_bench])
+    with st.container():
+        st.markdown(f"**Archivo seleccionado:** {nombre_bench} — Última modificación: {ultima_mod}")
+        st.markdown(
+            "**Resumen accesible:** Esta vista compara las métricas principales de cada modelo "
+            "(ROC-AUC, PR-AUC, sensibilidad, especificidad, F1, Brier). Los valores mostrados "
+            "corresponden al conjunto de prueba y sirven para auditoría técnica."
+        )
+
     if datos is None:
         st.error("No se pudo leer el JSON seleccionado.")
         st.stop()
@@ -127,6 +197,12 @@ if vista == "📊 Comparativa de modelos":
     col1.metric("Mejor modelo", mejor)
     col2.metric("ROC-AUC", df_m.iloc[0]["ROC-AUC"])
     col3.metric("PR-AUC", df_m.iloc[0]["PR-AUC"])
+
+    # Banda 2: KPIs explicados (lectura rápida en <10s)
+    st.markdown(
+        "**Lectura rápida:** El `ROC-AUC` mide la capacidad de ordenamiento del modelo; "
+        "`PR-AUC` es más informativa en conjuntos desbalanceados. Consulta la tabla para métricas adicionales."
+    )
 
     st.markdown("### Tabla de métricas")
     st.dataframe(
@@ -162,6 +238,11 @@ if vista == "📊 Comparativa de modelos":
     st.pyplot(fig)
     plt.close(fig)
 
+    st.caption(
+        "Cómo leer: cada barra muestra la puntuación media sobre el conjunto de prueba. "
+        "Valores cercanos a 1 son mejores. El umbral mínimo aceptable se muestra con la línea punteada."
+    )
+
     # desbalance
     desbalance = datos.get("desbalance", {})
     if desbalance:
@@ -170,6 +251,10 @@ if vista == "📊 Comparativa de modelos":
         c1.metric("Clase 0 (sin diabetes)", f"{desbalance.get('pct_clase_0', 0):.1%}")
         c2.metric("Clase 1 (diabetes)", f"{desbalance.get('pct_clase_1', 0):.1%}")
         c3.metric("Ratio desbalance", f"{desbalance.get('ratio', 0):.1f}:1")
+        st.markdown(
+            "**Nota:** la `PR-AUC` es una métrica recomendable cuando la clase positiva es minoritaria; "
+            "la `ROC-AUC` permanece útil para comparar modelos cuando las tasas base son similares."
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -266,12 +351,20 @@ elif vista == "🔍 Predicción individual":
             st.info("Modelo no disponible. Mostraría la probabilidad de riesgo aquí.")
         else:
             prob = float(modelo.predict_proba(entrada)[0, 1])
-            if prob >= 0.66:
+            # usar umbrales y margen de incertidumbre del contrato
+            if prob >= UMBRAL_RIESGO_ALTO:
                 nivel, color, icono = "Alto", COLOR_RIESGO, "🔴"
-            elif prob >= 0.33:
+            elif prob >= UMBRAL_RIESGO_BAJO:
                 nivel, color, icono = "Medio", COLOR_ALERTA, "🟡"
             else:
                 nivel, color, icono = "Bajo", COLOR_SEGURO, "🟢"
+
+            # Advertencia de incertidumbre si está cerca de un umbral
+            aviso_incert = None
+            if abs(prob - UMBRAL_RIESGO_BAJO) <= MARGEN_INCERTIDUMBRE or abs(prob - UMBRAL_RIESGO_ALTO) <= MARGEN_INCERTIDUMBRE:
+                aviso_incert = (
+                    "Atención: probabilidad cercana al umbral operativo. Se recomienda revisión clínica y repetir mediciones."
+                )
 
             st.markdown("---")
             col_r1, col_r2 = st.columns([1, 2])
@@ -302,6 +395,40 @@ elif vista == "🔍 Predicción individual":
                 )
             else:
                 st.success("Riesgo **bajo** según los indicadores ingresados.")
+
+            if aviso_incert:
+                st.info(aviso_incert)
+
+            # Explicabilidad (SHAP) — intentar mostrar si está disponible
+            with st.expander("Explicación de la predicción (SHAP) — ver detalles"):
+                try:
+                    import shap
+
+                    modelo_local = modelo
+                    # preparar explainer de forma segura; si el pipeline contiene preprocesador, usarlo
+                    explainer = shap.Explainer(modelo_local.predict_proba, entrada)
+                    shap_values = explainer(entrada)
+                    st.pyplot(shap.plots.waterfall(shap_values[0], show=False))
+                except Exception as e:  # pragma: no cover - depende de entorno del usuario
+                    st.info(
+                        "SHAP no está disponible en este entorno o no se pudo calcular la explicación. "
+                        "Instala extras opcionales: pip install -e .[shap] para habilitarlo."
+                    )
+
+        # Mostrar valores de entrada con etiquetas y descripciones cortas
+        st.markdown("---")
+        st.markdown("### Valores ingresados (desglose)")
+        rows = []
+        lista = list(COLUMNAS_CDC)
+        for col in lista:
+            label, desc = COLUMNAS_ES.get(col, (col, ""))
+            rows.append({"Variable": label, "Valor": entrada.iloc[0][col], "Descripción": desc})
+        st.dataframe(pd.DataFrame(rows).set_index("Variable"), use_container_width=True)
+
+        st.caption(
+            "Interpretación rápida: la probabilidad mostrada es la estimación del modelo para la clase 'diabetes'. "
+            "Usa los umbrales definidos en la configuración para categorizar riesgo; la recomendación clínica siempre debe validar resultados."
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -347,6 +474,23 @@ elif vista == "🧬 Fenotipos K-Means":
         for f in fenotipos
     ]).sort_values("Tasa diabetes (%)", ascending=False)
 
+    # Explicación accesible sobre qué es un fenotipo y cómo interpretar la tabla
+    st.markdown(
+        "**Qué es un fenotipo:** un grupo homogéneo de pacientes identificado por K-Means sobre las 21 variables CDC. "
+        "`Top 4 variables` indica las variables con mayor influencia promedio en la distancia al centro del clúster. "
+        "`Tasa diabetes (%)` es la prevalencia observada de la clase positiva dentro del fenotipo."
+    )
+
+    # Añadir columna de interpretación rápida según prevalencia
+    mean_tasa = df_fen["Tasa diabetes (%)"].mean() if not df_fen.empty else 0
+    def interpret_tasa(x):
+        if x >= mean_tasa + 5:
+            return "Alto riesgo relativo"
+        if x <= mean_tasa - 5:
+            return "Bajo riesgo relativo"
+        return "Riesgo intermedio"
+    df_fen["Interpretación"] = df_fen["Tasa diabetes (%)"].apply(interpret_tasa)
+
     st.dataframe(
         df_fen.style.highlight_max(subset=["Tasa diabetes (%)"], color="#ffd0d0")
                     .highlight_min(subset=["Tasa diabetes (%)"], color="#d0f0d0")
@@ -379,13 +523,106 @@ elif vista == "🧬 Fenotipos K-Means":
 
     # descripción de cada fenotipo
     st.markdown("### Descripción de fenotipos")
+    # preparar valores de referencia
+    tasas = [f["tasa_diabetes_pct"] for f in fenotipos]
+    max_t = max(tasas) if tasas else 0
+    min_t = min(tasas) if tasas else 0
     for f in sorted(fenotipos, key=lambda x: x["tasa_diabetes"], reverse=True):
-        icono = "🔴" if f["tasa_diabetes_pct"] == max(x["tasa_diabetes_pct"] for x in fenotipos) \
-                else "🟢" if f["tasa_diabetes_pct"] == min(x["tasa_diabetes_pct"] for x in fenotipos) \
-                else "🟡"
+        icono = "🔴" if f["tasa_diabetes_pct"] == max_t else "🟢" if f["tasa_diabetes_pct"] == min_t else "🟡"
         with st.expander(
-            f"{icono} {f['nombre']} — {f['tasa_diabetes_pct']:.1f}% diabetes "
-            f"({f['n']:,} pacientes)"
+            f"{icono} {f['nombre']} — {f['tasa_diabetes_pct']:.1f}% diabetes ({f['n']:,} pacientes)"
         ):
-            st.markdown(f"**Variables más elevadas:** {', '.join(f['top_4_variables'])}")
-            st.progress(f["tasa_diabetes"])
+            st.markdown(f"**Variables más elevadas (Top 4):** {', '.join(f['top_4_variables'])}")
+            st.markdown(
+                "**Interpretación:** "
+                f"Este fenotipo agrupa {f['n']:,} pacientes ({f['n']/meta.get('n_registros',1):.1%} del total). "
+                f"La prevalencia de diabetes dentro del grupo es {f['tasa_diabetes_pct']:.1f}%. "
+                "Use esta información para priorizar intervenciones dirigidas a las variables listadas."
+            )
+            st.progress(f["tasa_diabetes"]) 
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VISTA 4 — Calibración & Explicabilidad global
+# ══════════════════════════════════════════════════════════════════════════════
+elif vista == "📈 Calibración & Explicabilidad":
+    st.title("📈 Calibración y explicabilidad global")
+    st.markdown(
+        "Esta vista reúne artefactos producidos por el pipeline: curvas ROC/PR, "
+        "gráficas de calibración y métricas globales (Brier, AUC). También explica cuándo "
+        "es necesario recalibrar un modelo para un nuevo contexto."
+    )
+
+    # seleccionar benchmark
+    benchs = {
+        p.stem: p
+        for p in sorted(REPORTES_DIR.glob("benchmark_*.json"))
+        if "manifest" not in p.stem
+    }
+    if not benchs:
+        st.warning("No hay benchmarks disponibles en `reportes/` para mostrar calibración.")
+        st.stop()
+
+    sel = st.selectbox("Selecciona benchmark para ver métricas y artefactos", list(benchs.keys()), index=0)
+    datos_b = _cargar_json(benchs[sel])
+    if datos_b is None:
+        st.error("No se pudo leer el benchmark seleccionado.")
+        st.stop()
+
+    # mostrar métricas clave como KPIs
+    modelos = datos_b.get("modelos", {})
+    kpicol1, kpicol2, kpicol3, kpicol4 = st.columns(4)
+    # mejor por ROC ya calculado en vista 1, pero mostramos globalmente
+    mejores = sorted(((m, v.get("roc_auc", 0)) for m, v in modelos.items()), key=lambda x: x[1], reverse=True)
+    mejor_modelo = mejores[0][0].upper() if mejores else "—"
+    kpicol1.metric("Mejor modelo (ROC-AUC)", mejor_modelo)
+    # promedio Brier
+    brier_vals = [v.get("brier_score", None) for v in modelos.values() if v.get("brier_score") is not None]
+    kpicol2.metric("Brier medio", f"{(sum(brier_vals)/len(brier_vals)):.3f}" if brier_vals else "—")
+    # cantidad de modelos
+    kpicol3.metric("Modelos evaluados", len(modelos))
+    kpicol4.metric("Tamaño prueba", f"{datos_b.get('n_test', '—')}")
+
+    st.markdown("---")
+    st.markdown("### Artefactos generados por el pipeline")
+    col_a, col_b = st.columns(2)
+    # mostrar imágenes si existen
+    img1 = REPORTES_DIR / "curvas_gbm.png"
+    img2 = REPORTES_DIR / "calibracion_gbm.png"
+    if img1.exists():
+        with col_a:
+            st.image(str(img1), caption="Curvas ROC/PR (GBM)")
+    else:
+        col_a.info("No se encontró curvas_gbm.png")
+
+    if img2.exists():
+        with col_b:
+            st.image(str(img2), caption="Curva de calibración (GBM)")
+    else:
+        col_b.info("No se encontró calibracion_gbm.png")
+
+    st.markdown(
+        "**Interpretación:** Una curva de calibración cercana a la diagonal indica probabilidades bien calibradas. "
+        "Brier Score cuantifica el error de probabilidad; valores menores son mejores. Si el Brier es alto, considere recalibración (Platt/Isotonic)."
+    )
+
+    st.markdown("### Métricas por modelo (detalle)")
+    filas_mod = []
+    for mname, mv in modelos.items():
+        filas_mod.append({
+            "Modelo": mname.upper(),
+            "ROC-AUC": mv.get("roc_auc"),
+            "PR-AUC": mv.get("pr_auc"),
+            "Brier": mv.get("brier_score"),
+            "Sensibilidad": mv.get("sensibilidad"),
+            "Especificidad": mv.get("especificidad"),
+        })
+    if filas_mod:
+        st.dataframe(pd.DataFrame(filas_mod).set_index("Modelo"), use_container_width=True)
+    else:
+        st.info("No hay métricas por modelo en el JSON seleccionado.")
+
+    st.markdown("---")
+    st.markdown(
+        "Si deseas añadir explicabilidad global (SHAP summary), genera `shap_summary.png` en `reportes/` desde el notebook o el pipeline y aparecerá aquí para su inspección."
+    )

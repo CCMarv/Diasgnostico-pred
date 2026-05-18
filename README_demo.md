@@ -79,6 +79,12 @@ Abre `http://localhost:8501` en tu navegador. Tres vistas disponibles (selector 
 
 > La vista "Predicción individual" requiere que el modelo esté en `modelos/predictor_production.joblib`. Sin él, muestra un aviso de degradación elegante.
 
+Nota: para habilitar explicaciones basadas en SHAP en la vista de predicción, instala las dependencias opcionales:
+
+```bash
+pip install -e .[shap]
+```
+
 ---
 
 ## 3. API REST (FastAPI)
