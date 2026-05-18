@@ -2,6 +2,35 @@
 
 Esta guía complementa [GUIA_UNIFICADA.md](../GUIA_UNIFICADA.md). Lee primero la guía unificada para entender el flujo general (secciones 1-8), luego usa este documento para detalles específicos de SVM.
 
+## 🎓 Para empezar: ¿qué hace este modelo en palabras simples?
+
+### A. Definición coloquial
+
+Imagina que tienes que separar manzanas de naranjas en una mesa. Una Máquina de Vectores de Soporte (SVM) busca la línea que deja la mayor distancia posible entre las manzanas más cercanas al borde y las naranjas más cercanas al borde. Cuanto más espacio entre ambos grupos, más segura es la separación. En este proyecto, en lugar de manzanas y naranjas, el modelo separa personas con riesgo de diabetes de personas sin riesgo, usando 21 características de salud como el IMC, la presión arterial y la edad.
+
+### B. Por qué lo usamos aquí
+
+La SVM es buena para encontrar patrones complejos cuando las variables de salud no se separan de forma simple o lineal. No basta con decir "si el IMC es alto, hay diabetes": la relación depende también de la edad, los antecedentes y otros factores al mismo tiempo.
+
+### C. Qué significa que funcione bien o mal
+
+- **Funciona bien**: de cada 10 personas con diabetes real, el modelo identifica 7 u 8 correctamente. Los médicos pueden priorizar a esas personas para revisiones adicionales.
+- **Funciona mal**: el modelo clasifica como "sin riesgo" a personas que sí tienen diabetes. Eso puede retrasar un diagnóstico importante.
+
+### D. Glosario
+
+| Término | Qué significa en lenguaje simple |
+|---------|----------------------------------|
+| Kernel RBF | Una función matemática que permite al modelo encontrar separaciones curvas, no solo líneas rectas |
+| Margen | El espacio vacío entre los dos grupos justo en la frontera de la separación |
+| Parámetro C | Qué tan estricto es el modelo: valores altos = muy estricto, puede memorizar el entrenamiento |
+| `class_weight='balanced'` | Le dice al modelo que preste igual atención a los casos de diabetes (pocos) que a los casos sin diabetes (muchos) |
+| `predict_proba` | La capacidad del modelo de decir "creo que hay un 70% de probabilidad de diabetes" en lugar de solo "sí o no" |
+| Validación cruzada | Entrenar y probar el modelo varias veces con distintas partes de los datos, para asegurarse de que los resultados son estables |
+| ROC-AUC | Una puntuación de 0 a 1 que indica qué tan bien distingue el modelo entre casos con y sin diabetes; 0.5 es azar puro, 1.0 es perfecto |
+
+---
+
 ## Introducción: ¿Por qué SVM?
 
 La Máquina de Vectores de Soporte (SVM) busca el hiperplano que **maximiza el margen** entre clases. En el proyecto actúa como modelo baseline kernelizado, con capacidad para capturar fronteras no lineales a través de kernels (aquí: RBF).

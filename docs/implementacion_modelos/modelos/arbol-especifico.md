@@ -2,6 +2,35 @@
 
 Esta guía complementa [GUIA_UNIFICADA.md](../GUIA_UNIFICADA.md). Lee primero la guía unificada para entender el flujo general (secciones 1-8), luego usa este documento para detalles específicos del Árbol.
 
+## 🎓 Para empezar: ¿qué hace este modelo en palabras simples?
+
+### A. Definición coloquial
+
+Piensa en el juego "20 preguntas": alguien piensa un animal y tú haces preguntas de sí o no para adivinarlo. Un Árbol de Decisión hace exactamente eso con los datos de salud. Primero pregunta "¿Tienes presión alta?", luego "¿Tu IMC supera 30?", y así sucesivamente hasta llegar a una respuesta. Cada nodo del árbol es una pregunta; cada hoja es una conclusión. El árbol aprende qué preguntas son más útiles y en qué orden hacerlas.
+
+### B. Por qué lo usamos aquí
+
+El Árbol de Decisión genera reglas fácilmente explicables a un médico o paciente, lo que es valioso en un contexto clínico donde la transparencia importa tanto como la precisión.
+
+### C. Qué significa que funcione bien o mal
+
+- **Funciona bien**: las reglas que aprende tienen sentido clínico y la tasa de detección de casos reales es razonable.
+- **Funciona mal**: el árbol aprende reglas demasiado específicas para los datos de entrenamiento y falla con datos nuevos, o produce reglas que contradicen el conocimiento médico.
+
+### D. Glosario
+
+| Término | Qué significa en lenguaje simple |
+|---------|----------------------------------|
+| Nodo | Un punto del árbol donde se hace una pregunta sobre una variable |
+| Hoja | El final de una rama del árbol, donde el modelo emite su veredicto |
+| Profundidad máxima | Cuántas preguntas puede hacer el árbol en cadena antes de dar una respuesta |
+| `ccp_alpha` | Un control de "poda": elimina ramas poco útiles para evitar que el árbol sea demasiado complicado |
+| `class_weight='balanced'` | Equilibra la influencia de pacientes con y sin diabetes durante el aprendizaje |
+| Impureza de Gini | Una medida de qué tan mezclados están los grupos; el árbol busca preguntas que reduzcan esta mezcla |
+| Sobreajuste | Cuando el modelo memoriza los datos de entrenamiento pero falla con datos nuevos |
+
+---
+
 ## Introducción: ¿Por qué Árbol?
 
 El Árbol de Decisión genera **reglas interpretables** del tipo "si X > umbral entonces…". En el proyecto actúa como modelo baseline explicable, útil para entender el problema y comparar con modelos más complejos.
