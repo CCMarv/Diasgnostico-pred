@@ -99,7 +99,7 @@ Puntos extra:
 
 | ID | Tarea | Ítem rúbrica | Archivo | Estado |
 |----|-------|--------------|---------|--------|
-| S3-01 | Verificar que SVM, Árbol y MLP se evalúan con las mismas métricas que GBM | I1, I2, I3 | `entrenamiento/comparador_modelos.py` | ⬜ |
+| S3-01 | Verificar que SVM, Árbol y MLP se evalúan con las mismas métricas que GBM | I1, I2, I3 | `entrenamiento/comparador_modelos.py` | ✅ Verificado mediante prueba automatizada en `pruebas/test_comparador.py` (2026-05-18) |
 | S3-02 | K-Means con `init='k-means++'`, método del codo y `silhouette_score` | I4 | `entrenamiento/fenotipado.py` | ✅ |
 | S3-03 | Notebook de análisis de fenotipos (visualización de clústeres, interpretación) | I4, Resultados 30% | `notebooks/02_fenotipado_kmeans.ipynb` | ⬜ |
 | S3-04 | `GridSearchCV` con `StratifiedKFold` como módulo formal (ya validado en experimento) | I5 | `entrenamiento/optimizador.py` | ✅ |
