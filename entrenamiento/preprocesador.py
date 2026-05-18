@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Final
 
 from sklearn.compose import ColumnTransformer
@@ -39,6 +40,7 @@ class ConstructorPreprocesador:
         "Income": list(range(1, 9)),
     }
     COLUMNA_FENOTIPO: Final[str] = "fenotipo"
+    _LOGGER: Final[logging.Logger] = logging.getLogger(__name__)
 
     def __init__(self, use_knn: bool = False, use_smote: bool = False, smote_kwargs: dict | None = None) -> None:
         """
@@ -107,7 +109,11 @@ class ConstructorPreprocesador:
 
                 resampler = SMOTE(**self.smote_kwargs)
                 return ImbPipeline(steps=[("preprocesador", self.construir()), ("resample", resampler), ("clasificador", clasificador)])
-            except Exception:
+            except ImportError:
+                self._LOGGER.warning(
+                    "imbalanced-learn no está instalado. SMOTE desactivado. "
+                    "Instala con: pip install imbalanced-learn>=0.12.0"
+                )
                 # Fallback seguro a Pipeline estándar si la librería no está disponible.
                 return Pipeline(memory=None, steps=[("preprocesador", self.construir()), ("clasificador", clasificador)])
         return Pipeline(memory=None, steps=[("preprocesador", self.construir()), ("clasificador", clasificador)])

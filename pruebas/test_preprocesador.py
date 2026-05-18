@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import builtins
 import joblib
 import numpy as np
 import pandas as pd
 from sklearn.dummy import DummyClassifier
+from sklearn.pipeline import Pipeline
 
 from config import COLUMNAS_CDC
 from entrenamiento.preprocesador import ConstructorPreprocesador
@@ -95,3 +97,21 @@ def test_ordinales_mantienen_orden():
     transformado = preprocesador.fit_transform(x)
     ordinales = transformado[:, -4:]
     assert ordinales[1, 0] > ordinales[0, 0]
+
+
+def test_pipeline_con_smote_hace_fallback_con_warning_si_no_hay_imblearn(monkeypatch, caplog):
+    constructor = ConstructorPreprocesador(use_smote=True)
+    import_original = builtins.__import__
+
+    def _import_con_error(name, *args, **kwargs):
+        if name.startswith("imblearn"):
+            raise ImportError("imblearn no disponible")
+        return import_original(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", _import_con_error)
+
+    with caplog.at_level("WARNING"):
+        pipeline = constructor.construir_pipeline(DummyClassifier(strategy="most_frequent"))
+
+    assert isinstance(pipeline, Pipeline)
+    assert "SMOTE desactivado" in caplog.text
