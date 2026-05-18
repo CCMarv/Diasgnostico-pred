@@ -37,7 +37,7 @@ class ResultadoModelo:
 class ComparadorModelos:
     """Comparador de modelos supervisados y clustering para experimentación clínica."""
 
-    def __init__(self, use_knn: bool = False, use_smote: bool = False, smote_kwargs: dict | None = None) -> None:
+    def __init__(self, use_knn: bool = True, use_smote: bool = False, smote_kwargs: dict | None = None) -> None:
         """
         Parámetros:
         - `use_knn`: usar `KNNImputer` para continuas si True.
@@ -265,6 +265,9 @@ class ComparadorModelos:
         total_folds = cv.get_n_splits()
         particiones = list(cv.split(x_entrenamiento, y_entrenamiento))
 
+        # informar_progreso no se pasa a los workers de loky: las callbacks que
+        # contienen threading.Lock/Event no son serializables entre procesos.
+        # El progreso de cada fold se emite desde el proceso padre tras completar.
         resultados_fold = Parallel(n_jobs=-1, backend="loky")(
             delayed(self._evaluar_un_fold)(
                 nombre=nombre,
@@ -276,12 +279,16 @@ class ComparadorModelos:
                 indice_fold=indice_fold,
                 total_folds=total_folds,
                 etiqueta=etiqueta,
-                informar_progreso=informar_progreso,
+                informar_progreso=None,
             )
             for indice_fold, (indices_fit, indices_validacion) in enumerate(particiones, start=1)
         )
 
-        return [puntaje for _, puntaje in sorted(resultados_fold, key=lambda item: item[0])]
+        resultados_ordenados = sorted(resultados_fold, key=lambda item: item[0])
+        if informar_progreso is not None:
+            for indice_fold, puntaje in resultados_ordenados:
+                informar_progreso(f"{etiqueta}: fold {indice_fold}/{total_folds} terminado (roc_auc={puntaje:.4f})")
+        return [puntaje for _, puntaje in resultados_ordenados]
 
     def _evaluar_un_fold(
         self,

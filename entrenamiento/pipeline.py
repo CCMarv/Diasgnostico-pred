@@ -317,7 +317,7 @@ def ejecutar_pipeline(
     - `clustering` ejecuta K-Means sin variable objetivo.
     """
     cargador = CargadorDatos()
-    comparador = ComparadorModelos()
+    comparador = ComparadorModelos(use_knn=True, use_smote=True)
     # Configurar logging si aún no hay handlers (útil al ejecutar desde CLI o pruebas aisladas)
     if not logging.getLogger().handlers:
         logging.basicConfig(
