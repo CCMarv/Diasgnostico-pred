@@ -39,34 +39,49 @@ def construir_reporte_clasificacion(metricas: dict, tabla: pd.DataFrame, ruta_cr
     """
     timestamp = metricas.get("timestamp", datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S"))
     mejor_modelo = metricas.get("mejor_modelo", "desconocido")
+    mejor_por_pr = metricas.get("mejor_modelo_por_pr_auc", mejor_modelo)
     modelos = metricas.get("modelos", {})
     desbalance = metricas.get("desbalance", {})
+    n_muestras = metricas.get("n_muestras", "—")
+    use_knn = metricas.get("use_knn", True)
+    use_smote = metricas.get("use_smote", True)
+    semilla = metricas.get("semilla", 42)
+    nombres_modelos = ",".join(modelos.keys())
 
     mejor = modelos.get(mejor_modelo, {})
     lineas: list[str] = [
-        "# Reporte legible de clasificación",
+        "# Reporte de clasificación — Diagnóstico predictivo de diabetes",
         "",
-        f"**Fecha de generación:** {timestamp}",
-        f"**Modelo ganador:** {mejor_modelo}",
+        f"**Fecha:** {timestamp}  ",
+        f"**Parámetros:** n={n_muestras} | KNN={use_knn} | SMOTE={use_smote} | semilla={semilla}  ",
+        f"**Modelo ganador (ROC-AUC):** `{mejor_modelo}`  ",
+        f"**Mejor por PR-AUC:** `{mejor_por_pr}`  ",
     ]
     if ruta_cruda is not None:
-        lineas.append(f"**Origen crudo:** {ruta_cruda.as_posix()}")
+        lineas.append(f"**Origen crudo:** `{ruta_cruda.name}`  ")
     lineas.extend([
         "",
+        "---",
+        "",
         "## Resumen ejecutivo",
-        f"- Se compararon {len(modelos)} modelos supervisados con el mismo conjunto de prueba.",
-        f"- El mejor desempeño global fue de **{mejor.get('roc_auc', 0.0):.4f} ROC-AUC**.",
-        f"- La prevalencia de clase positiva observada fue **{desbalance.get('pct_clase_1', 0.0):.4f}**.",
-        f"- El desbalance se aproximó a una razón de **{desbalance.get('ratio', 0.0):.2f}:1**.",
+        "",
+        f"- Se compararon **{len(modelos)} modelos** supervisados sobre el mismo conjunto de prueba sin data leakage.",
+        f"- Mejor ROC-AUC: **{mejor.get('roc_auc', 0.0):.4f}** (`{mejor_modelo}`)",
+        f"- Mejor PR-AUC: **{modelos.get(mejor_por_pr, {}).get('pr_auc', 0.0):.4f}** (`{mejor_por_pr}`)",
+        f"- Prevalencia de diabetes en el conjunto: **{desbalance.get('pct_clase_1', 0.0):.1%}** (ratio {desbalance.get('ratio', 0.0):.1f}:1)",
         "",
         "## Tabla comparativa",
-        _tabla_markdown(tabla),
+        "",
+        _tabla_markdown_con_ganador(tabla, mejor_modelo),
         "",
         "## Interpretación clínica",
+        "",
         _interpretar_modelo_ganador(mejor_modelo, mejor),
         "",
-        "## Nota operativa",
-        "Este reporte se sintetiza a partir de un JSON crudo generado por el pipeline. Los artefactos crudos se mantienen fuera del repositorio para evitar versionar salidas volátiles.",
+        "---",
+        "",
+        "*Generado automáticamente por `entrenamiento/pipeline.py`*  ",
+        f"*Para reproducir: `python -m entrenamiento.pipeline --modo clasificacion --modelos {nombres_modelos}`*",
         "",
     ])
     return "\n".join(lineas)
@@ -143,20 +158,29 @@ def ruta_legible_desde_crudo(ruta_cruda: Path) -> Path:
 
 
 def _tabla_markdown(tabla: pd.DataFrame) -> str:
+    return _tabla_markdown_con_ganador(tabla, ganador=None)
+
+
+def _tabla_markdown_con_ganador(tabla: pd.DataFrame, ganador: str | None) -> str:
+    col_orden = "roc_auc" if "roc_auc" in tabla.columns else tabla.columns[0]
+    tabla = tabla.sort_values(col_orden, ascending=False).reset_index(drop=True)
     encabezados = list(tabla.columns)
     lineas = [
         "| " + " | ".join(encabezados) + " |",
         "| " + " | ".join(["---"] * len(encabezados)) + " |",
     ]
     for _, fila in tabla.iterrows():
+        nombre = str(fila.get("nombre_modelo", ""))
+        es_ganador = ganador is not None and nombre == ganador
         valores = []
         for columna in encabezados:
             valor = fila[columna]
-            if isinstance(valor, float):
-                valores.append(f"{valor:.4f}")
-            else:
-                valores.append(str(valor))
-        lineas.append("| " + " | ".join(valores) + " |")
+            celda = f"{valor:.4f}" if isinstance(valor, float) else str(valor)
+            if es_ganador:
+                celda = f"**{celda}**"
+            valores.append(celda)
+        prefijo = "→ " if es_ganador else ""
+        lineas.append("| " + prefijo + " | ".join(valores) + " |")
     return "\n".join(lineas)
 
 

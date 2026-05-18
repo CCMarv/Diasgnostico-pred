@@ -127,6 +127,8 @@ def _ejecutar_flujo_clasificacion(
     ruta_reporte: Path,
     ruta_reporte_legible: Path,
     modelos_a_entrenar: list[str] | None,
+    use_knn: bool = True,
+    use_smote: bool = True,
 ) -> dict[str, float | str | dict]:
     tiempo_inicio_total = time.perf_counter()
     tiempos: dict[str, float] = {}
@@ -186,7 +188,10 @@ def _ejecutar_flujo_clasificacion(
     tiempos["division_train_test"] = time.perf_counter() - inicio_etapa
 
     modelos_objetivo = _resolver_modelos_a_entrenar(modelos_a_entrenar)
-    _LOG.info("Entrenando modelos: %s", ",".join(modelos_objetivo) if modelos_objetivo else "todos")
+    _LOG.info(
+        "Pipeline iniciado — modelos: %s | KNN: %s | SMOTE: %s | n=%d",
+        ",".join(modelos_objetivo), use_knn, use_smote, len(x),
+    )
     inicio_etapa = time.perf_counter()
     resultados = comparador.entrenar_clasificacion(
         x_ent,
@@ -207,27 +212,24 @@ def _ejecutar_flujo_clasificacion(
             y_prob=y_prob,
             nombre_modelo=resultado.nombre,
         )
-        try:
-            _LOG.info("Resultado %s: ROC-AUC=%.4f", resultado.nombre, evaluacion.roc_auc)
-        except Exception:
-            _LOG.info("Resultado %s evaluado (no disponible ROC-AUC).", resultado.nombre)
+        _LOG.info(
+            "%-8s | ROC-AUC=%.3f | PR-AUC=%.3f | Sens=%.2f | Spec=%.2f",
+            resultado.nombre.upper(),
+            evaluacion.roc_auc, evaluacion.pr_auc,
+            evaluacion.sensibilidad, evaluacion.especificidad,
+        )
         evaluaciones.append((resultado, evaluacion))
     tiempos["evaluacion_modelos"] = time.perf_counter() - inicio_etapa
 
     inicio_etapa = time.perf_counter()
     monitor.actualizar("Seleccionando mejor modelo y generando gráficas")
-    mejor_resultado, _ = max(evaluaciones, key=lambda item: item[1].roc_auc)
-    mejor_por_pr_auc, _ = max(evaluaciones, key=lambda item: item[1].pr_auc)
-    if mejor_por_pr_auc.nombre != mejor_resultado.nombre:
-        _LOG.info(
-            "Nota: el mejor modelo por PR-AUC es '%s' (PR-AUC=%.4f), "
-            "distinto al mejor por ROC-AUC '%s' (ROC-AUC=%.4f). "
-            "Se serializa el modelo con mayor ROC-AUC según la política del proyecto.",
-            mejor_por_pr_auc.nombre,
-            max(e[1].pr_auc for e in evaluaciones),
-            mejor_resultado.nombre,
-            max(e[1].roc_auc for e in evaluaciones),
-        )
+    mejor_resultado, mejor_eval = max(evaluaciones, key=lambda item: item[1].roc_auc)
+    mejor_por_pr_auc, mejor_eval_pr = max(evaluaciones, key=lambda item: item[1].pr_auc)
+    _LOG.info(
+        "✓ Mejor ROC-AUC: %s (%.3f) | Mejor PR-AUC: %s (%.3f)",
+        mejor_resultado.nombre, mejor_eval.roc_auc,
+        mejor_por_pr_auc.nombre, mejor_eval_pr.pr_auc,
+    )
     evaluador.graficar_curvas(
         y_pru.to_numpy(),
         _extraer_probabilidad_clase_1(mejor_resultado.modelo, x_pru),
@@ -239,9 +241,6 @@ def _ejecutar_flujo_clasificacion(
         mejor_resultado.nombre,
     )
     tabla_comparativa = evaluador.comparar_modelos([item[1] for item in evaluaciones])
-
-    for _, evaluacion in evaluaciones:
-        _LOG.info("\n%s", evaluador.interpretar_resultado(evaluacion))
 
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
     ruta_versionada = ruta_modelo.parent / f"modelo_diabetes_v{timestamp}.joblib"
@@ -262,6 +261,10 @@ def _ejecutar_flujo_clasificacion(
     metricas = {
         "version": ruta_versionada.name,
         "timestamp": timestamp,
+        "n_muestras": len(x),
+        "use_knn": use_knn,
+        "use_smote": use_smote,
+        "semilla": SEMILLA_ALEATORIA,
         "mejor_modelo": mejor_resultado.nombre,
         "mejor_modelo_por_roc_auc": mejor_resultado.nombre,
         "mejor_modelo_por_pr_auc": mejor_por_pr_auc.nombre,
@@ -272,11 +275,12 @@ def _ejecutar_flujo_clasificacion(
     guardar_json_crudo(metricas, ruta_reporte)
     reporte_legible = construir_reporte_clasificacion(metricas, tabla_comparativa, ruta_cruda=ruta_reporte)
     guardar_reporte_legible(reporte_legible, ruta_reporte_legible)
-    _LOG.info("Reporte crudo escrito en %s", ruta_reporte)
-    _LOG.info("Reporte legible escrito en %s", ruta_reporte_legible)
+    _LOG.info("Modelo serializado en %s", ruta_modelo)
+    _LOG.info("Reporte crudo: %s", ruta_reporte)
     tiempos["generacion_artefactos"] = time.perf_counter() - inicio_etapa
     tiempos["total"] = time.perf_counter() - tiempo_inicio_total
     metricas["tiempos_segundos"] = tiempos
+    _LOG.info("Pipeline completado en %.1fs", tiempos["total"])
     return metricas
 
 
@@ -343,6 +347,8 @@ def ejecutar_pipeline(
     ruta_reporte_legible: Path | None = None,
     n_clusters: int = CLUSTERS_POR_DEFECTO,
     modelos_a_entrenar: list[str] | None = None,
+    use_knn: bool = True,
+    use_smote: bool = True,
 ) -> dict[str, float | str | dict]:
     """
     Orquesta el flujo completo de entrenamiento.
@@ -352,7 +358,7 @@ def ejecutar_pipeline(
     - `clustering` ejecuta K-Means sin variable objetivo.
     """
     cargador = CargadorDatos()
-    comparador = ComparadorModelos(use_knn=True, use_smote=True)
+    comparador = ComparadorModelos(use_knn=use_knn, use_smote=use_smote)
     # Configurar logging si aún no hay handlers (útil al ejecutar desde CLI o pruebas aisladas)
     if not logging.getLogger().handlers:
         logging.basicConfig(
@@ -386,6 +392,8 @@ def ejecutar_pipeline(
                 ruta_reporte=ruta_reporte,
                 ruta_reporte_legible=ruta_reporte_legible,
                 modelos_a_entrenar=modelos_a_entrenar,
+                use_knn=use_knn,
+                use_smote=use_smote,
             )
         if modo == "clustering":
             return _ejecutar_flujo_clustering(
