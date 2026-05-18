@@ -51,13 +51,14 @@ class PredictorListoVerdadero:
 
 def test_salud_degradado_sin_modelo():
     with TestClient(app) as client:
+        app.state.predictor = PredictorListoFalso()
         respuesta = client.get("/salud")
 
     assert respuesta.status_code == 200
     data = respuesta.json()
-    assert data["estado"] in {"operativo", "degradado"}
+    assert data["estado"] == "degradado"
     assert "detalles" in data
-    assert "modelo_cargado" in data["detalles"]
+    assert data["detalles"]["modelo_cargado"] is False
 
 
 def test_predecir_retorna_503_si_modelo_no_esta_listo():

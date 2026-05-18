@@ -28,7 +28,14 @@ async def lifespan(app: FastAPI):
     """Propósito: inicializar predictor al arrancar; firma: (app: FastAPI) -> async context manager."""
     predictor = PredictorDiabetes()
     # La API carga el artefacto una sola vez al inicio para evitar hacerlo en cada request.
-    predictor.cargar_modelo()
+    cargado = predictor.cargar_modelo()
+    if cargado:
+        logger.info("Modelo cargado correctamente desde %s", predictor.ruta_modelo)
+    else:
+        logger.warning(
+            "Modelo no disponible en %s; API iniciando en modo degradado.",
+            predictor.ruta_modelo,
+        )
     app.state.predictor = predictor
     yield
 
@@ -48,23 +55,14 @@ def crear_app() -> FastAPI:
         - Retorno: RespuestaSalud.
 
         Lógica resumida:
-        - Verifica existencia y tamaño > 0 del archivo de modelo.
+        - Consulta el predictor en memoria para determinar si el modelo está listo.
         - Emite estado operativo/degradado y metadatos de diagnóstico.
 
         Caso de error principal:
-        - Si falla acceso al filesystem, se degrada a `modelo_cargado=False`.
+        - Si el predictor no tiene modelo cargado, se degrada a `modelo_cargado=False`.
         """
         ruta_modelo = ConfiguracionRutas.RUTA_MODELO
-        modelo_cargado = False
-        if ruta_modelo.exists():
-            try:
-                # Se valida existencia y tamaño para diferenciar un archivo real de un artefacto vacío o corrupto.
-                modelo_cargado = ruta_modelo.stat().st_size > 0
-            except OSError as exc:
-                logger.warning(
-                    "No fue posible inspeccionar el archivo de modelo; API operando en modo degradado: %s",
-                    exc,
-                )
+        modelo_cargado = app.state.predictor.esta_listo()
 
         estado = "operativo" if modelo_cargado else "degradado"
         if not modelo_cargado:
