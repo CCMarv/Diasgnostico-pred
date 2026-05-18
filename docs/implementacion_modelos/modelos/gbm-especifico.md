@@ -2,6 +2,35 @@
 
 Esta guía complementa [GUIA_UNIFICADA.md](../GUIA_UNIFICADA.md). Lee primero la guía unificada para entender el flujo general (secciones 1-8), luego usa este documento para detalles específicos de Gradient Boosting.
 
+## 🎓 Para empezar: ¿qué hace este modelo en palabras simples?
+
+### A. Definición coloquial
+
+Imagina un equipo de correctores de exámenes: el primero revisa un examen y califica; el segundo revisa los errores del primero y los corrige; el tercero corrige los errores del segundo, y así 200 veces. Cada corrector es un árbol de decisión pequeño. Al final, la calificación del equipo completo es mucho más precisa que la de cualquier corrector individual. Eso es Gradient Boosting: 200 árboles pequeños que se construyen uno encima de los errores del anterior.
+
+### B. Por qué lo usamos aquí
+
+GBM es el modelo con mayor capacidad predictiva del catálogo del proyecto. Para detectar diabetes, donde los patrones son complejos y múltiples variables interactúan, este enfoque iterativo logra los mejores resultados en ROC-AUC.
+
+### C. Qué significa que funcione bien o mal
+
+- **Funciona bien**: el modelo generaliza correctamente a nuevos pacientes, con un ROC-AUC superior a 0.80, lo que significa alta discriminación entre casos positivos y negativos.
+- **Funciona mal**: el modelo se entrena demasiado lento o sobreajusta cuando la tasa de aprendizaje es muy alta, memorizando el conjunto de entrenamiento sin aprender patrones reales.
+
+### D. Glosario
+
+| Término | Qué significa en lenguaje simple |
+|---------|----------------------------------|
+| Árbol débil | Un árbol muy pequeño (pocos nodos) que por sí solo no es muy preciso, pero contribuye poco a poco al conjunto |
+| Tasa de aprendizaje | Qué tan grande es el paso de corrección en cada iteración; valores pequeños = más estable pero más lento |
+| `n_estimators` | Cuántos árboles correctores se construyen en total; más árboles = más potente pero más lento |
+| `max_depth` | Qué tan profundo puede ser cada árbol corrector; profundidad 4 es moderada |
+| Gradiente | La dirección matemática en la que el modelo reduce sus errores en cada paso |
+| Sobreajuste | Cuando el conjunto de 200 árboles aprende de memoria el entrenamiento y falla con datos nuevos |
+| Validación cruzada | Entrenar y evaluar en distintas particiones de los datos para estimar el rendimiento real |
+
+---
+
 ## Introducción: ¿Por qué GBM?
 
 Gradient Boosting combina **árboles secuenciales**: cada nuevo árbol aprende a corregir los errores de los anteriores. En el proyecto es el modelo con **mayor capacidad predictiva** del catálogo supervisado.

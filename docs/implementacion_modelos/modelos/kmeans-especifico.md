@@ -2,6 +2,35 @@
 
 Esta guía complementa [GUIA_UNIFICADA.md](../GUIA_UNIFICADA.md). Lee primero la guía unificada para entender el flujo general, luego usa este documento para detalles específicos de K-Means.
 
+## 🎓 Para empezar: ¿qué hace este modelo en palabras simples?
+
+### A. Definición coloquial
+
+Imagina que un profesor tiene 300 estudiantes y quiere formarles equipos de trabajo por afinidad, sin saber de antemano quién se lleva bien con quién. Observa sus notas, hábitos y preferencias, y agrupa a los más parecidos entre sí. K-Means hace exactamente eso con los datos de los pacientes: sin saber si tienen diabetes o no, busca grupos de personas con perfiles de salud similares. Cada grupo puede revelar un "fenotipo" clínico distinto.
+
+### B. Por qué lo usamos aquí
+
+K-Means permite explorar si existen subgrupos naturales de pacientes (por ejemplo, "jóvenes sedentarios con sobrepeso" vs. "adultos mayores con presión alta") que no son visibles en un análisis individual de variables, complementando los modelos supervisados.
+
+### C. Qué significa que funcione bien o mal
+
+- **Funciona bien**: los grupos obtenidos tienen sentido clínico: pacientes dentro de un mismo grupo se parecen entre sí en variables de salud, y los grupos son distintos entre sí. El silhouette score está por encima de 0.3.
+- **Funciona mal**: los grupos se distribuyen de forma casi uniforme sin distinción real, o el número de clusters elegido no corresponde a la estructura real de los datos.
+
+### D. Glosario
+
+| Término | Qué significa en lenguaje simple |
+|---------|----------------------------------|
+| Cluster | Un grupo de pacientes con características de salud similares |
+| Centroide | El "centro" matemático de un cluster; el punto promedio de todos sus miembros |
+| `k-means++` | Una forma inteligente de elegir los centroides iniciales, que mejora la calidad del resultado |
+| Inercia | La suma de distancias de cada paciente a su centroide; valores más bajos indican grupos más compactos |
+| Método del codo | Gráfica de inercia vs. número de clusters; el "codo" sugiere el número óptimo |
+| Silhouette score | Puntuación de -1 a 1 que mide qué tan bien separados están los clusters; valores cercanos a 1 son mejores |
+| No supervisado | El modelo no usa la etiqueta "tiene diabetes" para agrupar; descubre estructura por sí solo |
+
+---
+
 ## Introducción: ¿Por qué K-Means?
 
 K-Means es un algoritmo de **clustering no supervisado** que agrupa observaciones en K clusters basándose en distancia euclidiana. En el proyecto se usa para **fenotipado**: explorar si hay grupos naturales de pacientes sin usar la variable de diabetes.

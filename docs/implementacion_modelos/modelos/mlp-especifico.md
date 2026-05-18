@@ -2,6 +2,35 @@
 
 Esta guía complementa [GUIA_UNIFICADA.md](../GUIA_UNIFICADA.md). Lee primero la guía unificada para entender el flujo general (secciones 1-8), luego usa este documento para detalles específicos de MLP.
 
+## 🎓 Para empezar: ¿qué hace este modelo en palabras simples?
+
+### A. Definición coloquial
+
+El cerebro humano tiene millones de neuronas conectadas entre sí: cuando ves algo, las señales viajan de neurona en neurona hasta que tu cerebro decide qué es. Un Perceptrón Multicapa (MLP) imita esa estructura con capas de nodos matemáticos. La primera capa recibe las 21 variables de salud; las capas del medio las transforman y combinan; la última capa emite la probabilidad de diabetes. El modelo ajusta todas esas conexiones mirando los errores que comete, igual que tú aprendes de tus equivocaciones.
+
+### B. Por qué lo usamos aquí
+
+El MLP puede capturar relaciones extremadamente complejas entre variables, lo que lo hace útil cuando las interacciones entre factores de riesgo no siguen patrones simples. Representa la mayor complejidad del catálogo supervisado del proyecto.
+
+### C. Qué significa que funcione bien o mal
+
+- **Funciona bien**: el modelo aprende representaciones internas útiles y su ROC-AUC es comparable o superior a GBM, demostrando que las capas ocultas capturaron patrones reales.
+- **Funciona mal**: el entrenamiento oscila sin converger, o el modelo memoriza el conjunto de entrenamiento. El parámetro `early_stopping=True` ayuda a detectar esto automáticamente.
+
+### D. Glosario
+
+| Término | Qué significa en lenguaje simple |
+|---------|----------------------------------|
+| Capa oculta | Una fila de nodos matemáticos entre la entrada y la salida; aquí hay dos capas de 64 y 32 nodos |
+| Activación ReLU | Una función que "enciende" una neurona solo si su valor es positivo, introduciendo no-linealidad |
+| Adam | El algoritmo que ajusta los pesos de la red; es eficiente y adapta el tamaño del paso automáticamente |
+| `early_stopping` | El modelo para de entrenar cuando deja de mejorar, evitando que memorice los datos |
+| Épocas | Cuántas veces el modelo recorre el conjunto de entrenamiento completo durante el ajuste |
+| Pesos | Los números internos de la red que se ajustan durante el aprendizaje |
+| `validation_fraction` | La fracción de datos reservada para detectar cuándo el modelo empieza a sobreajustar |
+
+---
+
 ## Introducción: ¿Por qué MLP?
 
 El Perceptrón Multicapa (MLP) es una **red neuronal con capas ocultas**. Captura relaciones **altamente no lineales** entre variables. En el proyecto representa la mayor complejidad del catálogo supervisado.
