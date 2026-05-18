@@ -45,7 +45,7 @@ Esto genera en `resultados/corrida_50k/`:
 - `curvas_gbm.png` — curvas ROC y Precisión-Recall
 - `calibracion_gbm.png` — curva de calibración del mejor modelo
 
-### Corrida con el dataset completo (253k registrosU)
+### Corrida con el dataset completo (253k registros)
 
 ```bash
 python -m entrenamiento.pipeline \
