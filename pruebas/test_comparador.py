@@ -13,7 +13,6 @@ def test_evaluar_por_folds_usa_backend_loky(monkeypatch):
 
     class ParallelFalso:
         def __init__(self, *args, **kwargs):
-            _ = args
             parametros_parallel.update(kwargs)
 
         def __call__(self, _tareas):
