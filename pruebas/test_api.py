@@ -77,3 +77,15 @@ def test_predecir_ok_mapea_categoria_y_advertencia():
     data = respuesta.json()
     assert data["categoria_riesgo"] == "alto"
     assert data["advertencia"] is not None
+
+
+def test_predecir_retorna_422_por_incoherencia_clinica():
+    payload = _payload_base()
+    payload["salud_fisica"] = 25
+    payload["dificultad_caminar"] = 0
+
+    with TestClient(app) as client:
+        app.state.predictor = PredictorListoVerdadero()
+        respuesta = client.post("/predecir", json=payload)
+
+    assert respuesta.status_code == 422
