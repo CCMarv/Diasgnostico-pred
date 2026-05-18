@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Final
 
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer, KNNImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+
+_LOG = logging.getLogger(__name__)
 
 
 class ConstructorPreprocesador:
@@ -107,8 +110,11 @@ class ConstructorPreprocesador:
 
                 resampler = SMOTE(**self.smote_kwargs)
                 return ImbPipeline(steps=[("preprocesador", self.construir()), ("resample", resampler), ("clasificador", clasificador)])
-            except Exception:
-                # Fallback seguro a Pipeline estándar si la librería no está disponible.
+            except ImportError:
+                _LOG.warning(
+                    "imbalanced-learn no está instalado. SMOTE desactivado. "
+                    "Instala con: pip install imbalanced-learn>=0.12.0"
+                )
                 return Pipeline(memory=None, steps=[("preprocesador", self.construir()), ("clasificador", clasificador)])
         return Pipeline(memory=None, steps=[("preprocesador", self.construir()), ("clasificador", clasificador)])
 

@@ -6,3 +6,4 @@ dependencies:
   - pip
   - pip:
       - -e .[dev]
+      - imbalanced-learn>=0.12.0
