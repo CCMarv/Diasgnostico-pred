@@ -218,6 +218,7 @@
 | 2026-05-17 | Implementado `FenotipadoKMeans` con pruebas unitarias; implementado `OptimizadorHiperparametros` con pruebas; ejecución de la muestra mínima de estabilidad y pruebas pasadas. Suite de pruebas `pruebas/` ejecutada: 20 passed. | Básico → Básico (hacia Intermedio) | AcademicoIA |
 | 2026-05-18 | Completada auditoría de evidencia: issues #9–#43 cerrados. Suite: 27 tests en 8 archivos. Reemplazados todos los placeholders. | Básico → Básico completado (Intermedio parcial sin dashboard) | AcademicoIA |
 | 2026-05-18 | Unificación documental: eliminados `PLAN_CORRECIONES.md`, `ROADMAP.md`, `docs/copilot-instructions.md`, `.github/copilot-instructions.md`. Plan de sprints S3–S6 absorbido en Sección 6. Este documento es ahora la única referencia de control de proyecto. Detectados errores de colección en pytest (entorno limpio sin `pip install -e .[dev]`). Benchmarks 5k/10k/50k confirman cumplimiento del requisito de 2000 registros. | Sin cambio de nivel | CCMarv |
+| 2026-05-18 | Sprint 3 completado: `notebooks/02_fenotipado_kmeans.ipynb` creado y ejecutado (k=2, silhouette=0.590, χ²=1209, p<0.001); `reportes/contraste_regional.md` generado; errores de pytest resueltos con `pip install -e .[dev]` + `Makefile`; suite: 29 passed. | Básico completado → Intermedio parcial (sin dashboard) | CCMarv |
 
 ---
 
@@ -235,24 +236,26 @@
 
 ---
 
-### Sprint 3 — Cierre de K-Means y pendientes de S2 *(en progreso)*
+### Sprint 3 — Cierre de K-Means y pendientes de S2 ✅ COMPLETADO 2026-05-18
 **Impacto:** completa I4, I5, enriquece Resultados 30% y Reporte 20%
 
 | ID | Tarea | Archivo | Estado |
 |----|-------|---------|--------|
 | S3-01 | Contrato uniforme de métricas en 4 modelos | `pruebas/test_comparador.py` | ✅ 2026-05-18 |
 | S3-02 | K-Means con `k-means++`, codo, silhouette | `entrenamiento/fenotipado.py` | ✅ |
-| S3-03 | Notebook de análisis de fenotipos K-Means | `notebooks/02_fenotipado_kmeans.ipynb` | ⬜ |
+| S3-03 | Notebook de análisis de fenotipos K-Means | `notebooks/02_fenotipado_kmeans.ipynb` | ✅ 2026-05-18 — k=2, silhouette=0.590, χ²=1209 (p<0.001) |
 | S3-04 | `GridSearchCV` + `StratifiedKFold` como módulo formal | `entrenamiento/optimizador.py` | ✅ |
 | S3-05 | Pruebas del fenotipador | `pruebas/test_fenotipado.py` | ✅ |
-| S3-06 | Verificar pruebas del optimizador (errores de colección) | `pruebas/test_optimizador.py` | 🟡 |
+| S3-06 | Corregir errores de colección en pytest | `Makefile` + `pip install -e .[dev]` | ✅ 2026-05-18 — 29 passed |
 | S3-07 | Parquet procesado sin columna objetivo | `datos/procesados/dataset_procesado.parquet` | ✅ |
-| S3-08 | Contraste regional documentado en reporte | `reportes/contraste_regional.md` | ⬜ |
+| S3-08 | Contraste regional documentado en reporte | `reportes/contraste_regional.md` | ✅ 2026-05-18 — generado por `scripts/generar_contraste_regional.py` |
 
-**Validación de cierre:**
-```bash
-pytest pruebas/test_fenotipado.py pruebas/test_optimizador.py -v
-pytest pruebas/ --tb=short   # 0 errores de colección
+**Validación ejecutada:**
+```
+pytest pruebas/ -q → 29 passed, 0 errors
+jupyter nbconvert --execute notebooks/02_fenotipado_kmeans.ipynb → OK (sin errores)
+reportes/hallazgos_fenotipado.json → generado (k=2, silhouette=0.5895)
+reportes/contraste_regional.md → generado
 ```
 
 ---
