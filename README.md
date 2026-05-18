@@ -121,8 +121,8 @@ uvicorn api.main:app --reload
 La corrida completa debe dejar estos artefactos como evidencia:
 
 - `modelos/predictor_production.joblib`
-- `reportes/metricas_sprint1.json` o el JSON crudo equivalente de la corrida
-- `reportes/metricas_sprint1.md` o el Markdown legible equivalente de la corrida
+- `reportes/metricas.json` o el JSON crudo equivalente de la corrida
+- `reportes/metricas.md` o el Markdown legible equivalente de la corrida
 - `reportes/curvas_<modelo>.png`
 
 Para validaciones académicas más recientes, también se generan:
@@ -159,8 +159,8 @@ Alternativamente puede pasar la ruta al CSV con `--dataset datos/brutos/mi_csv.c
 Después de disponer del CSV, ejecute el pipeline para entrenar y generar artefactos:
 
 - `modelos/predictor_production.joblib` — pipeline serializado listo para inferencia
-- `reportes/metricas_sprint1.json` — JSON crudo con métricas de todos los modelos evaluados
-- `reportes/metricas_sprint1.md` — tabla comparativa en Markdown generada desde el JSON crudo
+- `reportes/metricas.json` — JSON crudo con métricas de todos los modelos evaluados
+- `reportes/metricas1.md` — tabla comparativa en Markdown generada desde el JSON crudo
 - `reportes/curvas_<modelo>.png` — curvas ROC y Precision-Recall del mejor modelo
 
 El pipeline acepta `--salida-reporte` para el JSON crudo y `--salida-reporte-legible` para el Markdown. Si no se pasa la lista de modelos con `--modelos`, se usan por defecto `svm`, `arbol`, `gbm` y `mlp`.
