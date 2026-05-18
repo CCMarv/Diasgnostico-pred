@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split
 from config import (
     MODELOS_SUPERVISADOS,
     PROPORCION_PRUEBA,
+    RUTA_DATASET_PREDETERMINADA,
     RUTA_MODELO_FINAL,
     RUTA_REPORTE_METRICAS,
     SEMILLA_ALEATORIA,
@@ -129,6 +130,19 @@ def _ejecutar_flujo_clasificacion(
     tiempo_inicio_total = time.perf_counter()
     tiempos: dict[str, float] = {}
 
+    monitor.actualizar("Validando esquema del dataset")
+    ruta_csv = ruta_dataset or RUTA_DATASET_PREDETERMINADA
+    if ruta_csv.suffix.lower() == ".csv" and ruta_csv.exists():
+        columnas_presentes = set(pd.read_csv(ruta_csv, nrows=0).columns)
+        columnas_faltantes = set(list(COLUMNAS_CDC) + [COLUMNA_OBJETIVO]) - columnas_presentes
+        if columnas_faltantes:
+            raise ValueError(
+                f"El dataset no contiene las columnas requeridas para clasificación: "
+                f"{sorted(columnas_faltantes)}. "
+                f"Asegúrate de que el CSV incluya las 21 columnas CDC y la columna "
+                f"'{COLUMNA_OBJETIVO}'. Consulta README.md para el formato esperado."
+            )
+
     inicio_etapa = time.perf_counter()
     monitor.actualizar("Cargando dataset con objetivo")
     df = cargador.cargar(ruta_dataset=ruta_dataset, incluir_objetivo=True)
@@ -202,6 +216,17 @@ def _ejecutar_flujo_clasificacion(
     inicio_etapa = time.perf_counter()
     monitor.actualizar("Seleccionando mejor modelo y generando gráficas")
     mejor_resultado, _ = max(evaluaciones, key=lambda item: item[1].roc_auc)
+    mejor_por_pr_auc, _ = max(evaluaciones, key=lambda item: item[1].pr_auc)
+    if mejor_por_pr_auc.nombre != mejor_resultado.nombre:
+        _LOG.info(
+            "Nota: el mejor modelo por PR-AUC es '%s' (PR-AUC=%.4f), "
+            "distinto al mejor por ROC-AUC '%s' (ROC-AUC=%.4f). "
+            "Se serializa el modelo con mayor ROC-AUC según la política del proyecto.",
+            mejor_por_pr_auc.nombre,
+            max(e[1].pr_auc for e in evaluaciones),
+            mejor_resultado.nombre,
+            max(e[1].roc_auc for e in evaluaciones),
+        )
     evaluador.graficar_curvas(
         y_pru.to_numpy(),
         _extraer_probabilidad_clase_1(mejor_resultado.modelo, x_pru),
@@ -232,6 +257,8 @@ def _ejecutar_flujo_clasificacion(
         "version": ruta_versionada.name,
         "timestamp": timestamp,
         "mejor_modelo": mejor_resultado.nombre,
+        "mejor_modelo_por_roc_auc": mejor_resultado.nombre,
+        "mejor_modelo_por_pr_auc": mejor_por_pr_auc.nombre,
         "modelos": modelos_json,
         "desbalance": desbalance,
         "ruta_modelo_versionado": str(ruta_versionada),
