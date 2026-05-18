@@ -265,7 +265,8 @@ class ComparadorModelos:
         total_folds = cv.get_n_splits()
         particiones = list(cv.split(x_entrenamiento, y_entrenamiento))
 
-        resultados_fold = Parallel(n_jobs=-1, prefer="threads")(
+        informar_progreso_folds = None
+        resultados_fold = Parallel(n_jobs=-1, backend="loky")(
             delayed(self._evaluar_un_fold)(
                 nombre=nombre,
                 pipeline=pipeline,
@@ -276,7 +277,7 @@ class ComparadorModelos:
                 indice_fold=indice_fold,
                 total_folds=total_folds,
                 etiqueta=etiqueta,
-                informar_progreso=informar_progreso,
+                informar_progreso=informar_progreso_folds,
             )
             for indice_fold, (indices_fit, indices_validacion) in enumerate(particiones, start=1)
         )
