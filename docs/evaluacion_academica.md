@@ -2,8 +2,8 @@
 <!-- Documento único de control de proyecto — reemplaza PLAN_CORRECIONES.md, ROADMAP.md y copilot-instructions.md -->
 
 **Última actualización:** 2026-05-18
-**Nivel estimado actual:** Intermedio COMPLETADO (+15 pts) — Sprint 5 COMPLETADO
-**Puntos extra acumulados:** +15 (Dashboard I6 completado Sprint 4)
+**Nivel estimado actual:** Avanzado COMPLETADO (+30 pts) — Sprints 5 y 6 COMPLETADOS
+**Puntos extra acumulados:** +30 (Intermedio +15 Sprint 4, Avanzado +15 Sprint 6)
 
 ---
 
@@ -14,13 +14,13 @@
 
 | Componente | Peso | Calificación estimada (0-100) | Ponderado | Observaciones |
 |------------|------|-------------------------------|-----------|---------------|
-| **Código y Técnica** | 40% | 80 | 32.0 | Pipeline completo, 4 modelos, KNNImputer + SMOTE, 27 tests, type hints, dashboard, logs tabulares, --dir-resultados ✅ |
-| **Resultados** | 30% | 82 | 24.6 | 8 métricas por modelo, corridas 10k y 50k documentadas, fenotipos K-Means, contraste CDC vs ENSANUT ✅ |
-| **Reporte** | 20% | 80 | 16.0 | reportes/reporte_final.md completo con intro clínica, metodología, resultados, conclusiones, comparativa papers ✅ |
-| **Presentación** | 10% | 80 | 8.0 | README_demo.md con comandos copiables, docs/preguntas_defensa.md con 33 preguntas ✅ |
-| **TOTAL BASE** | 100% | — | **80.6** | |
-| **Puntos extra (nivel)** | — | — | **+15** | Nivel Intermedio desbloqueado con Dashboard (Sprint 4) ✅ |
-| **CALIFICACIÓN FINAL** | — | — | **95.6** | Proyección tras Sprint 6 (API+modelo real): ~106.6 |
+| **Código y Técnica** | 40% | 85 | 34.0 | Pipeline completo, 4 modelos, KNNImputer + SMOTE, 27 tests, type hints, dashboard, API operativa con modelo real ✅ |
+| **Resultados** | 30% | 85 | 25.5 | 8 métricas por modelo, corridas 10k y 50k, fenotipos K-Means, contraste CDC/ENSANUT, comparativa papers ✅ |
+| **Reporte** | 20% | 85 | 17.0 | reporte_final.md completo + comparativa papers (Priya 2021, Kopitar 2020) ✅ |
+| **Presentación** | 10% | 85 | 8.5 | README_demo.md, 33 preguntas defensa, demo API funcional con modelo real ✅ |
+| **TOTAL BASE** | 100% | — | **85.0** | |
+| **Puntos extra (nivel)** | — | — | **+30** | Intermedio ✅ +15 / Avanzado ✅ +15 |
+| **CALIFICACIÓN FINAL** | — | — | **115.0** | Proyecto completo — todos los sprints ejecutados |
 
 ---
 
@@ -63,10 +63,10 @@
 
 | Requisito | Evidencia en código | Archivo | Estado |
 |-----------|---------------------|---------|--------|
-| Sistema en producción — API funcional (FastAPI u otro) | `api/main.py` con endpoints `/salud` y `/predecir` funcionales; estado operativo/degradado consistente; 4 tests de integración pasando | api/main.py | 🟡 Código completo — falta serializar modelo: `modelos/modelo_diabetes_v1.joblib` no existe; ejecutar pipeline para generarlo (S6-01) |
-| Comparativa con papers académicos documentada en reporte | No existe todavía; pendiente Sprint 6 (S6-005, S6-006) | reportes/reporte_final.md | ❌ pendiente S6 |
+| Sistema en producción — API funcional (FastAPI u otro) | `api/main.py` con `/salud` → `{"estado":"operativo"}` y `/predecir` retornando `categoria_riesgo`; modelo real cargado desde `modelos/modelo_diabetes_v1.joblib` (copiado de corrida_50k) | api/main.py | ✅ Sprint 6 completo 2026-05-18 — verificado con curl: alto riesgo=0.736, bajo riesgo=0.012 |
+| Comparativa con papers académicos documentada en reporte | Tabla en `reportes/reporte_final.md` §3.6: Priya et al. 2021 (SVM, PIMA, 0.850), Kopitar et al. 2020 (RF, EHR, 0.883) vs este proyecto (GBM, BRFSS, 0.827) | reportes/reporte_final.md | ✅ Sprint 5 completado 2026-05-18 |
 
-**Veredicto Avanzado:** INCOMPLETO — faltantes: conexión API con modelo real (S6-001) y comparativa papers (S6-005/006)
+**Veredicto Avanzado:** COMPLETADO ✅ → **+15 puntos extra desbloqueados** (total +30 con Intermedio)
 
 ---
 

@@ -102,29 +102,29 @@ curl http://localhost:8000/salud
 curl -X POST http://localhost:8000/predecir \
   -H "Content-Type: application/json" \
   -d '{
-    "HighBP": 1,
-    "HighChol": 1,
-    "CholCheck": 1,
-    "BMI": 32.0,
-    "Smoker": 0,
-    "Stroke": 0,
-    "HeartDiseaseorAttack": 0,
-    "PhysActivity": 0,
-    "Fruits": 1,
-    "Veggies": 1,
-    "HvyAlcoholConsump": 0,
-    "AnyHealthcare": 1,
-    "NoDocbcCost": 0,
-    "GenHlth": 3,
-    "MentHlth": 5,
-    "PhysHlth": 10,
-    "DiffWalk": 1,
-    "Sex": 1,
-    "Age": 9,
-    "Education": 4,
-    "Income": 5
+    "presion_alta": 1,
+    "colesterol_alto": 1,
+    "chequeo_colesterol": 1,
+    "imc": 35.0,
+    "fumador": 1,
+    "derrame_cerebral": 0,
+    "enfermedad_corazon": 1,
+    "actividad_fisica": 0,
+    "consume_fruta": 0,
+    "consume_verdura": 0,
+    "consumo_alcohol_alto": 0,
+    "tiene_cobertura_medica": 1,
+    "sin_medico_por_costo": 0,
+    "salud_general": 4,
+    "salud_mental": 10,
+    "salud_fisica": 15,
+    "dificultad_caminar": 1,
+    "sexo": 1,
+    "edad": 10,
+    "educacion": 3,
+    "ingreso": 3
   }'
-# Respuesta esperada: {"probabilidad_diabetes": 0.42, "clase_predicha": 0, "umbral": 0.5}
+# Respuesta esperada: {"categoria_riesgo": "alto", "confianza": 0.736, ...}
 ```
 
 ### Documentación interactiva (Swagger UI)
