@@ -34,7 +34,7 @@ class ConfiguracionRutas(_ConfiguracionInmutable):
 
     DIR_BASE: Final[Path] = Path(__file__).resolve().parent
     DIR_MODELOS: Final[Path] = DIR_BASE / "modelos"
-    RUTA_MODELO: Final[Path] = DIR_MODELOS / "modelo_diabetes_v1.joblib"
+    RUTA_MODELO: Final[Path] = DIR_MODELOS / "predictor_production.joblib"
     DIR_REPORTES: Final[Path] = DIR_BASE / "reportes"
     NOMBRE_REPORTE: Final[str] = "metricas_sprint1.json"
 

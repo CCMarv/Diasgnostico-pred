@@ -17,8 +17,8 @@ corrida_{tag}/
 ├── corrida_{tag}.json                  # métricas brutas — fuente de verdad
 ├── corrida_{tag}.md                    # reporte Markdown legible
 ├── corrida_{tag}_manifest.json         # qué se ejecutó y cuándo
-├── modelo_{tag}.joblib                 # pipeline serializado del modelo ganador
-├── modelo_diabetes_v{timestamp}.joblib # copia versionada con timestamp
+├── predictor_{tag}.joblib              # pipeline serializado del modelo ganador
+├── predictor_{timestamp}.joblib        # copia versionada con timestamp
 ├── curvas_{modelo_ganador}.png         # curvas ROC y Precision-Recall
 ├── calibracion_{modelo_ganador}.png    # curva de calibración
 ├── muestra_{tag}.csv                   # muestra exacta usada (reproducible)
@@ -49,7 +49,7 @@ durante el entrenamiento) y serializa el resultado llamando a
 
 ```json
 {
-  "version":                 "modelo_diabetes_v20260518_084354.joblib",
+  "version":                 "predictor_20260518_084354.joblib",
   "timestamp":               "20260518_084354",
   "n_muestras":              10000,
   "use_knn":                 true,
@@ -78,7 +78,7 @@ durante el entrenamiento) y serializa el resultado llamando a
     "pct_clase_1":   0.136,
     "recomendacion": "class_weight"
   },
-  "ruta_modelo_versionado": "...modelo_diabetes_v20260518_084354.joblib"
+  "ruta_modelo_versionado": "...predictor_20260518_084354.joblib"
 }
 ```
 
@@ -163,7 +163,7 @@ JSON de métricas, la corrida falló tras el inicio.
   "modo":              "clasificacion",
   "timestamp_inicio":  "20260518_084203",
   "ruta_dataset":      ".../muestra_10k.csv",
-  "ruta_modelo":       ".../modelo_10k.joblib",
+  "ruta_modelo":       ".../predictor_10k.joblib",
   "ruta_reporte_crudo":".../corrida_10k.json",
   "modelos_a_entrenar": ["svm", "arbol", "gbm", "mlp"]
 }
@@ -174,7 +174,7 @@ tiempo total de la corrida.
 
 ---
 
-## Artefacto 4 — `modelo_{tag}.joblib`
+## Artefacto 4 — `predictor_{tag}.joblib`
 
 El **pipeline serializado completo** del modelo ganador por ROC-AUC en el conjunto de test.
 Es el artefacto que se usa en producción e inferencia.
@@ -201,7 +201,7 @@ En inferencia, `Pipeline.predict_proba(X)` aplica la misma transformación sin S
 import joblib
 import pandas as pd
 
-pipeline = joblib.load("corrida_10k/modelo_10k.joblib")
+pipeline = joblib.load("corrida_10k/predictor_10k.joblib")
 
 # La entrada debe tener exactamente las 21 columnas CDC en cualquier orden
 entrada = pd.DataFrame([{
@@ -239,10 +239,10 @@ if hasattr(clf, "feature_importances_"):
 
 ---
 
-## Artefacto 5 — `modelo_diabetes_v{timestamp}.joblib`
+## Artefacto 5 — `predictor_{timestamp}.joblib`
 
 Copia versionada del modelo final, con el timestamp de cuando terminó el pipeline.
-Permite conservar el modelo de cada corrida sin sobreescribir el canónico `modelo_{tag}.joblib`.
+Permite conservar el modelo de cada corrida sin sobreescribir el canónico `predictor_{tag}.joblib`.
 
 Útil para comparaciones históricas:
 
@@ -250,7 +250,7 @@ Permite conservar el modelo de cada corrida sin sobreescribir el canónico `mode
 import joblib, pathlib
 
 modelos_versionados = sorted(
-    pathlib.Path("corrida_10k").glob("modelo_diabetes_v*.joblib")
+    pathlib.Path("corrida_10k").glob("predictor_*.joblib")
 )
 for ruta in modelos_versionados:
     m = joblib.load(ruta)

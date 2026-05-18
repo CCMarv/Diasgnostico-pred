@@ -234,7 +234,7 @@ Actualización del repositorio: el catálogo sigue usando estos hiperparámetros
 1. **Definición:** [entrenamiento/comparador_modelos.py](../../entrenamiento/comparador_modelos.py) - instancia GradientBoostingClassifier
 2. **Preprocesamiento:** [entrenamiento/preprocesador.py](../../entrenamiento/preprocesador.py) - ColumnTransformer
 3. **Entrenamiento:** [entrenamiento/pipeline.py](../../entrenamiento/pipeline.py) - cross_val_score con StratifiedKFold
-4. **Serialización:** `modelos/modelo_diabetes_gbm.joblib`
+4. **Serialización:** `modelos/predictor_gbm.joblib`
 5. **Carga e inferencia:** [inferencia/predictor.py](../../inferencia/predictor.py)
 6. **Exposición:** [api/main.py](../../api/main.py)
 

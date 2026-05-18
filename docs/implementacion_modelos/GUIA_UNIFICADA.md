@@ -410,7 +410,7 @@ El flujo está orquestado en [entrenamiento/pipeline.py](../../entrenamiento/pip
 ```python
 import joblib
 
-ruta_modelo = "modelos/modelo_diabetes_final.joblib"
+ruta_modelo = "modelos/predictor_production.joblib"
 joblib.dump(mejor_modelo.modelo, ruta_modelo)
 ```
 

@@ -450,7 +450,7 @@ def main() -> None:
 
         # rutas de salida
         ruta_reporte = dir_corrida / f"corrida_{tag}.json"
-        ruta_modelo = dir_corrida / f"modelo_{tag}.joblib"
+        ruta_modelo = dir_corrida / f"predictor_{tag}.joblib"
 
         # ejecutar pipeline
         t0 = time.perf_counter()

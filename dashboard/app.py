@@ -185,7 +185,7 @@ elif vista == "🔍 Predicción individual":
     modelo = _cargar_modelo()
     if modelo is None:
         st.warning(
-            "⚠️ El modelo entrenado no está disponible en `modelos/modelo_diabetes_v1.joblib`. "
+            "⚠️ El modelo entrenado no está disponible en `modelos/predictor_production.joblib`. "
             "Para generarlo, ejecuta el pipeline de entrenamiento:\n"
             "```bash\npython -m entrenamiento.pipeline --modo clasificacion "
             "--modelos svm,arbol,gbm,mlp\n```"

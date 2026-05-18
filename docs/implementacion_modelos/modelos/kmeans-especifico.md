@@ -313,7 +313,7 @@ Actualización del repositorio: el helper formal `FenotipadoKMeans` vive en `ent
 1. **Definición:** [entrenamiento/comparador_modelos.py](../../entrenamiento/comparador_modelos.py) - instancia KMeans
 2. **Preprocesamiento:** [entrenamiento/preprocesador.py](../../entrenamiento/preprocesador.py) - ColumnTransformer + StandardScaler (obligatorio)
 3. **Entrenamiento:** [entrenamiento/pipeline.py](../../entrenamiento/pipeline.py) - fit sin supervisión
-4. **Serialización:** `modelos/modelo_fenotipo_kmeans.joblib`
+4. **Serialización:** `modelos/predictor_fenotipo_kmeans.joblib`
 5. **Uso** (opcional): Enriquecimiento de variables o análisis exploratorio
 
 ---

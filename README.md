@@ -120,7 +120,7 @@ uvicorn api.main:app --reload
 
 La corrida completa debe dejar estos artefactos como evidencia:
 
-- `modelos/modelo_diabetes_v1.joblib`
+- `modelos/predictor_production.joblib`
 - `reportes/metricas_sprint1.json` o el JSON crudo equivalente de la corrida
 - `reportes/metricas_sprint1.md` o el Markdown legible equivalente de la corrida
 - `reportes/curvas_<modelo>.png`
@@ -158,7 +158,7 @@ Alternativamente puede pasar la ruta al CSV con `--dataset datos/brutos/mi_csv.c
 
 Después de disponer del CSV, ejecute el pipeline para entrenar y generar artefactos:
 
-- `modelos/modelo_diabetes_v1.joblib` — pipeline serializado listo para inferencia
+- `modelos/predictor_production.joblib` — pipeline serializado listo para inferencia
 - `reportes/metricas_sprint1.json` — JSON crudo con métricas de todos los modelos evaluados
 - `reportes/metricas_sprint1.md` — tabla comparativa en Markdown generada desde el JSON crudo
 - `reportes/curvas_<modelo>.png` — curvas ROC y Precision-Recall del mejor modelo
@@ -191,7 +191,7 @@ El dashboard abre en `http://localhost:8501` con tres vistas navegables desde la
 | **Predicción individual** | Formulario con los 21 indicadores CDC; devuelve probabilidad de riesgo y categoría (bajo / medio / alto) usando el modelo serializado |
 | **Fenotipos K-Means** | Perfiles de los grupos de pacientes identificados por K-Means, prevalencia de diabetes por fenotipo y descripción de variables dominantes |
 
-Si `modelos/modelo_diabetes_v1.joblib` no existe, la vista de predicción muestra un aviso con el comando para generar el modelo; las demás vistas siguen operativas.
+Si `modelos/predictor_production.joblib` no existe, la vista de predicción muestra un aviso con el comando para generar el modelo; las demás vistas siguen operativas.
 
 ### 3. Levantar la API
 
@@ -217,7 +217,7 @@ curl http://localhost:8000/salud
   "version": "0.1.0",
   "detalles": {
     "modelo_cargado": true,
-    "ruta_modelo": "modelo_diabetes_v1.joblib",
+    "ruta_modelo": "predictor_production.joblib",
     "timestamp_servidor": "2026-05-14T20:30:00+00:00"
   }
 }

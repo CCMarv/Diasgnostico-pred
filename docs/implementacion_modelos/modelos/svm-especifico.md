@@ -221,13 +221,13 @@ El `Pipeline` entrenado se guarda con `joblib`:
 ```python
 import joblib
 
-joblib.dump(pipeline, "modelos/modelo_diabetes_svm.joblib")
+joblib.dump(pipeline, "modelos/predictor_svm.joblib")
 ```
 
 Al cargar y predecir:
 
 ```python
-pipeline_cargado = joblib.load("modelos/modelo_diabetes_svm.joblib")
+pipeline_cargado = joblib.load("modelos/predictor_svm.joblib")
 X_nuevo = [...] # datos nuevos, NO escalados (el Pipeline lo hace)
 prediccion = pipeline_cargado.predict(X_nuevo)
 probabilidad = pipeline_cargado.predict_proba(X_nuevo)

@@ -39,7 +39,7 @@ python -m entrenamiento.pipeline \
 ```
 
 Esto genera en `resultados/corrida_50k/`:
-- `modelo_50k.joblib` — pipeline serializado completo
+- `predictor_50k.joblib` — pipeline serializado completo
 - `corrida_50k.json` — métricas crudas de los 4 modelos
 - `corrida_50k.md` — reporte legible con tabla comparativa
 - `curvas_gbm.png` — curvas ROC y Precisión-Recall
@@ -58,7 +58,7 @@ python -m entrenamiento.pipeline \
 
 ```bash
 # Copiar el modelo de la corrida de referencia a la ruta que usa la API
-cp resultados/corrida_50k/modelo_50k.joblib modelos/modelo_diabetes_v1.joblib
+cp resultados/corrida_50k/predictor_50k.joblib modelos/predictor_production.joblib
 ```
 
 ---
@@ -77,7 +77,7 @@ Abre `http://localhost:8501` en tu navegador. Tres vistas disponibles (selector 
 | **Predicción individual** | Formulario con las 21 variables CDC para calcular probabilidad de diabetes en un paciente |
 | **Fenotipos K-Means** | Distribución de clústeres y tasa de diabetes por fenotipo de riesgo |
 
-> La vista "Predicción individual" requiere que el modelo esté en `modelos/modelo_diabetes_v1.joblib`. Sin él, muestra un aviso de degradación elegante.
+> La vista "Predicción individual" requiere que el modelo esté en `modelos/predictor_production.joblib`. Sin él, muestra un aviso de degradación elegante.
 
 ---
 
@@ -93,7 +93,7 @@ uvicorn api.main:app --reload
 
 ```bash
 curl http://localhost:8000/salud
-# Respuesta esperada: {"estado": "operativo", "modelo": "modelo_diabetes_v1.joblib"}
+# Respuesta esperada: {"estado": "operativo", "modelo": "predictor_production.joblib"}
 ```
 
 ### Realizar una predicción

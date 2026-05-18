@@ -197,7 +197,7 @@ def _ejecutar_flujo_clasificacion(
         tag = _tag_desde_n(len(x))
         dir_corrida = dir_resultados / f"corrida_{tag}"
         dir_corrida.mkdir(parents=True, exist_ok=True)
-        ruta_modelo = dir_corrida / f"modelo_{tag}.joblib"
+        ruta_modelo = dir_corrida / f"predictor_{tag}.joblib"
         ruta_reporte = dir_corrida / f"corrida_{tag}.json"
         ruta_reporte_legible = dir_corrida / f"corrida_{tag}.md"
         _LOG.info("dir_resultados activo → artefactos en %s", dir_corrida)
@@ -276,7 +276,7 @@ def _ejecutar_flujo_clasificacion(
     tabla_comparativa = evaluador.comparar_modelos([item[1] for item in evaluaciones])
 
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
-    ruta_versionada = ruta_modelo.parent / f"modelo_diabetes_v{timestamp}.joblib"
+    ruta_versionada = ruta_modelo.parent / f"predictor_{timestamp}.joblib"
 
     ruta_modelo.parent.mkdir(parents=True, exist_ok=True)
     ruta_reporte.parent.mkdir(parents=True, exist_ok=True)
