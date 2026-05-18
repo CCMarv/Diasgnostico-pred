@@ -1,0 +1,112 @@
+{
+  "metadata": {
+    "dataset": "CDC BRFSS 2015 diabetes_binary",
+    "n_rows": 253680,
+    "n_features": 21,
+    "analysis_date": "2026-05-18 14:03:12",
+    "target_variable": "Diabetes_binary"
+  },
+  "class_imbalance": {
+    "class_0": 218334,
+    "class_1": 35346,
+    "ratio": 6.177049736886777,
+    "pct_class_1": 13.933301797540206,
+    "recommendation": "Use class_weight=\"balanced\" in model"
+  },
+  "top_predictors": [
+    {
+      "variable": "GenHlth",
+      "rho": 0.28769724599353597,
+      "pval": 0.0
+    },
+    {
+      "variable": "HighBP",
+      "rho": 0.26312878992336214,
+      "pval": 0.0
+    },
+    {
+      "variable": "BMI",
+      "rho": 0.2263142106998207,
+      "pval": 0.0
+    },
+    {
+      "variable": "DiffWalk",
+      "rho": 0.21834435192101798,
+      "pval": 0.0
+    },
+    {
+      "variable": "HighChol",
+      "rho": 0.2002761918791201,
+      "pval": 0.0
+    }
+  ],
+  "risk_factors": [
+    {
+      "variable": 2,
+      "OR": 6.416094413751827,
+      "CI_low": 5.643740459527611,
+      "CI_high": 7.2941461113226085
+    },
+    {
+      "variable": 0,
+      "OR": 5.037341286437363,
+      "CI_low": 4.909696566945662,
+      "CI_high": 5.1683045764745055
+    },
+    {
+      "variable": 12,
+      "OR": 3.771077523488013,
+      "CI_low": 3.678637409752806,
+      "CI_high": 3.865840555650767
+    },
+    {
+      "variable": 5,
+      "OR": 3.6233128691092764,
+      "CI_low": 3.5170329081891722,
+      "CI_high": 3.73280446619772
+    },
+    {
+      "variable": 1,
+      "OR": 3.254526955209524,
+      "CI_low": 3.178012990039548,
+      "CI_high": 3.332883073600516
+    }
+  ],
+  "cdc_ensanut_sesgo": [
+    {
+      "variable": "Smoker",
+      "sesgo_relativo": 151.80031750809897,
+      "clasificacion": "\ud83d\udd34 Alto (>30%)"
+    },
+    {
+      "variable": "Veggies",
+      "sesgo_relativo": 138.65291149572408,
+      "clasificacion": "\ud83d\udd34 Alto (>30%)"
+    },
+    {
+      "variable": "HighChol",
+      "sesgo_relativo": 116.38823457481382,
+      "clasificacion": "\ud83d\udd34 Alto (>30%)"
+    },
+    {
+      "variable": "Fruits",
+      "sesgo_relativo": 51.01327506720127,
+      "clasificacion": "\ud83d\udd34 Alto (>30%)"
+    },
+    {
+      "variable": "HighBP",
+      "sesgo_relativo": 42.525283638790505,
+      "clasificacion": "\ud83d\udd34 Alto (>30%)"
+    }
+  ],
+  "multicolinearity": {
+    "pairs_high_corr": 4,
+    "threshold": 0.4,
+    "status": "low"
+  },
+  "data_quality": {
+    "missing_values": 0,
+    "range_violations": 0,
+    "duplicates": 24206
+  }
+}

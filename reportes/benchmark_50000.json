@@ -1,0 +1,94 @@
+{
+  "version": "modelo_diabetes_v20260517_201736.joblib",
+  "timestamp": "20260517_201736",
+  "mejor_modelo": "gbm",
+  "modelos": {
+    "svm": {
+      "nombre_modelo": "svm",
+      "roc_auc": 0.8364769456337439,
+      "pr_auc": 0.43211570016858475,
+      "sensibilidad": 0.07681263460157932,
+      "especificidad": 0.9919832694318578,
+      "f1_clase_positiva": 0.13639260675589548,
+      "brier_score": 0.09618288729562216,
+      "accuracy": 0.8645,
+      "matriz_confusion": [
+        [
+          8538,
+          69
+        ],
+        [
+          1286,
+          107
+        ]
+      ]
+    },
+    "arbol": {
+      "nombre_modelo": "arbol",
+      "roc_auc": 0.8145414286156337,
+      "pr_auc": 0.3871444777857753,
+      "sensibilidad": 0.8061737257717158,
+      "especificidad": 0.6682932496804926,
+      "f1_clase_positiva": 0.41817166263265687,
+      "brier_score": 0.1834206324768183,
+      "accuracy": 0.6875,
+      "matriz_confusion": [
+        [
+          5752,
+          2855
+        ],
+        [
+          270,
+          1123
+        ]
+      ]
+    },
+    "gbm": {
+      "nombre_modelo": "gbm",
+      "roc_auc": 0.839119163011192,
+      "pr_auc": 0.4396985008624653,
+      "sensibilidad": 0.1615218951902369,
+      "especificidad": 0.982223771348902,
+      "f1_clase_positiva": 0.2540937323546019,
+      "brier_score": 0.095302418026156,
+      "accuracy": 0.8679,
+      "matriz_confusion": [
+        [
+          8454,
+          153
+        ],
+        [
+          1168,
+          225
+        ]
+      ]
+    },
+    "mlp": {
+      "nombre_modelo": "mlp",
+      "roc_auc": 0.8328431148088865,
+      "pr_auc": 0.43032500138827484,
+      "sensibilidad": 0.15721464465183058,
+      "especificidad": 0.9807133728360636,
+      "f1_clase_positiva": 0.24634420697412823,
+      "brier_score": 0.09651455528411976,
+      "accuracy": 0.866,
+      "matriz_confusion": [
+        [
+          8441,
+          166
+        ],
+        [
+          1174,
+          219
+        ]
+      ]
+    }
+  },
+  "desbalance": {
+    "ratio": 6.176690110521028,
+    "pct_clase_0": 0.86066,
+    "pct_clase_1": 0.13934,
+    "recomendacion": "class_weight"
+  },
+  "ruta_modelo_versionado": "/tmp/tmpl2m7j5m1/modelo_diabetes_v20260517_201736.joblib"
+}

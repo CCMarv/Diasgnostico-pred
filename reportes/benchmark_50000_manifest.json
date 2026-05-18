@@ -1,0 +1,14 @@
+{
+  "modo": "clasificacion",
+  "timestamp_inicio": "20260517_200144",
+  "ruta_dataset": "/tmp/tmpl2m7j5m1/muestra_50000.csv",
+  "ruta_modelo": "/tmp/tmpl2m7j5m1/modelo_50000.joblib",
+  "ruta_reporte_crudo": "reportes/benchmark_50000.json",
+  "ruta_reporte_legible": "reportes/benchmark_50000.md",
+  "modelos_a_entrenar": [
+    "svm",
+    "arbol",
+    "gbm",
+    "mlp"
+  ]
+}
