@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from entrenamiento import comparador_modelos as modulo_comparador
 from entrenamiento.comparador_modelos import ComparadorModelos
@@ -25,10 +28,11 @@ def test_evaluar_por_folds_usa_backend_loky(monkeypatch):
     x = pd.DataFrame({"x1": [0.0, 1.0, 0.5, 1.5]})
     y = pd.Series([0, 1, 0, 1])
     cv = StratifiedKFold(n_splits=2, shuffle=True, random_state=42)
+    pipeline = Pipeline([("scale", StandardScaler()), ("clf", LogisticRegression(solver="liblinear"))])
 
     puntajes = comparador._evaluar_por_folds(
         nombre="gbm",
-        pipeline=object(),
+        pipeline=pipeline,
         cv=cv,
         x_entrenamiento=x,
         y_entrenamiento=y,

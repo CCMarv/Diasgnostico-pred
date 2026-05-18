@@ -266,6 +266,8 @@ class ComparadorModelos:
         particiones = list(cv.split(x_entrenamiento, y_entrenamiento))
 
         # `loky` serializa tareas entre procesos; callbacks con locks/estado interno no son picklables.
+        if informar_progreso is not None:
+            _LOG.info("%s: progreso por fold deshabilitado en backend=loky por restricciones de serialización", etiqueta)
         informar_progreso_folds = None
         resultados_fold = Parallel(n_jobs=-1, backend="loky")(
             delayed(self._evaluar_un_fold)(
