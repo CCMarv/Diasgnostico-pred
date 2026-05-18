@@ -167,6 +167,46 @@ class EvaluadorClinico:
         return data
 
     @staticmethod
+    def interpretar_resultado(resultado: ResultadoEvaluacion) -> str:
+        lineas = [
+            f"=== Interpretación del modelo: {resultado.nombre_modelo} ===",
+            "",
+            f"ROC-AUC: {resultado.roc_auc:.4f}",
+        ]
+        if resultado.roc_auc >= 0.80:
+            lineas.append("  → Excelente capacidad para separar pacientes con y sin diabetes.")
+        elif resultado.roc_auc >= 0.75:
+            lineas.append("  → Buena capacidad discriminativa. Cumple el umbral mínimo del proyecto.")
+        else:
+            lineas.append("  → Por debajo del umbral aceptable (0.75). Revisar hiperparámetros o preprocesamiento.")
+
+        lineas += [
+            "",
+            f"Sensibilidad: {resultado.sensibilidad:.4f}",
+            f"  → De cada 100 pacientes con diabetes, el modelo detecta "
+            f"aprox. {int(resultado.sensibilidad * 100)}.",
+        ]
+        if resultado.sensibilidad < 0.70:
+            lineas.append("  ⚠️ Sensibilidad baja: muchos casos de diabetes no son detectados.")
+
+        lineas += [
+            "",
+            f"Especificidad: {resultado.especificidad:.4f}",
+            f"  → De cada 100 pacientes sanos, el modelo clasifica correctamente "
+            f"aprox. {int(resultado.especificidad * 100)}.",
+            "",
+            f"Brier Score: {resultado.brier_score:.4f}",
+        ]
+        if resultado.brier_score < 0.10:
+            lineas.append("  → Calibración excelente: las probabilidades predichas son confiables.")
+        elif resultado.brier_score < 0.15:
+            lineas.append("  → Calibración aceptable.")
+        else:
+            lineas.append("  ⚠️ Calibración deficiente: las probabilidades predichas no son confiables.")
+
+        return "\n".join(lineas)
+
+    @staticmethod
     def _a_markdown(tabla: pd.DataFrame) -> str:
         encabezados = list(tabla.columns)
         lineas = [

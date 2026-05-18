@@ -533,3 +533,24 @@ Cada modelo tiene su propia guía con detalles concretos:
 - [GBM: Gradient Boosting Machines](modelos/gbm-especifico.md)
 - [MLP: Redes Neuronales](modelos/mlp-especifico.md)
 - [K-Means: Fenotipado no supervisado](modelos/kmeans-especifico.md)
+
+
+---
+
+## 📖 Glosario para estudiantes
+
+Esta sección define los términos técnicos más usados en toda la documentación. Está escrita para alguien que está aprendiendo ciencia de datos por primera vez.
+
+| Término | Definición simple |
+|---------|------------------|
+| **Pipeline** | Una cadena de pasos automáticos: primero limpias los datos, luego los transformas, luego entrenas el modelo. Todo en orden y sin que tengas que hacerlo manualmente cada vez. |
+| **Data Leakage** | Cuando el modelo "hace trampa" al entrenarse: ve información del futuro o del conjunto de prueba antes de tiempo. Es como estudiar con las respuestas del examen ya en mano. |
+| **Validación cruzada** | En lugar de probar el modelo una sola vez, lo pruebas 5 veces con diferentes partes de los datos. Así sabes si funciona bien en general, no solo con un grupo específico. |
+| **ROC-AUC** | Una puntuación entre 0 y 1 que mide qué tan bien el modelo separa a los enfermos de los sanos. 0.5 = no mejor que lanzar una moneda. 1.0 = perfecto. En este proyecto buscamos > 0.78. |
+| **PR-AUC** | Similar a ROC-AUC pero más útil cuando hay muchos más sanos que enfermos (como en este proyecto). Mide específicamente qué tan bien el modelo detecta los casos de diabetes. |
+| **Serialización** | Guardar el modelo entrenado en un archivo (`.joblib`) para poder usarlo después sin volver a entrenarlo. Como guardar una partida de videojuego. |
+| **Desbalance de clases** | Cuando hay muchos más casos de una clase que de otra. Aquí: ~86% sin diabetes vs ~14% con diabetes. Sin corrección, el modelo aprende a ignorar los casos de diabetes. |
+| **SMOTE** | Técnica para crear pacientes "sintéticos" con diabetes a partir de los reales, para que el modelo tenga más ejemplos de la clase minoritaria con qué aprender. |
+| **Hiperparámetros** | Configuraciones del modelo que el programador elige antes del entrenamiento. No son aprendidos por el modelo; son como las reglas del juego que tú defines. |
+| **Sensibilidad / Recall** | De todos los pacientes que realmente tienen diabetes, ¿qué porcentaje detectó el modelo? Alta sensibilidad = pocos diabéticos no detectados. |
+| **Especificidad** | De todos los pacientes que realmente NO tienen diabetes, ¿qué porcentaje clasificó el modelo como sanos? Evita alarmar innecesariamente a pacientes sanos. |

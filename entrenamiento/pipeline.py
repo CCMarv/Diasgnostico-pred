@@ -239,6 +239,9 @@ def _ejecutar_flujo_clasificacion(
     )
     tabla_comparativa = evaluador.comparar_modelos([item[1] for item in evaluaciones])
 
+    for _, evaluacion in evaluaciones:
+        _LOG.info("\n%s", evaluador.interpretar_resultado(evaluacion))
+
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
     ruta_versionada = ruta_modelo.parent / f"modelo_diabetes_v{timestamp}.joblib"
 
