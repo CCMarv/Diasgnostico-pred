@@ -176,7 +176,24 @@ Argumentos disponibles:
 | `--salida-reporte` | Ruta del JSON crudo generado por el pipeline | `--salida-reporte reportes/metricas_sprint1.json` |
 | `--salida-reporte-legible` | Ruta opcional del Markdown legible | `--salida-reporte-legible reportes/metricas_sprint1.md` |
 
-### 2. Levantar la API
+### 2. Levantar el dashboard
+
+```bash
+pip install -e .[dashboard]   # solo la primera vez, instala streamlit
+streamlit run dashboard/app.py
+```
+
+El dashboard abre en `http://localhost:8501` con tres vistas navegables desde la barra lateral:
+
+| Vista | Descripción |
+|---|---|
+| **Comparativa de modelos** | Tabla interactiva con los 4 modelos (SVM, Árbol, GBM, MLP) ordenados por ROC-AUC, resaltado del mejor, gráfica de barras ROC-AUC vs PR-AUC |
+| **Predicción individual** | Formulario con los 21 indicadores CDC; devuelve probabilidad de riesgo y categoría (bajo / medio / alto) usando el modelo serializado |
+| **Fenotipos K-Means** | Perfiles de los grupos de pacientes identificados por K-Means, prevalencia de diabetes por fenotipo y descripción de variables dominantes |
+
+Si `modelos/modelo_diabetes_v1.joblib` no existe, la vista de predicción muestra un aviso con el comando para generar el modelo; las demás vistas siguen operativas.
+
+### 3. Levantar la API
 
 ```bash
 uvicorn api.main:app --reload
@@ -307,8 +324,11 @@ diasgnostico-pred/
 │   ├── brutos/             # CSV fuente CDC BRFSS 2015 (excluido de git)
 │   └── procesados/         # Dataset limpio en formato Parquet
 ├── reportes/               # Métricas JSON, tablas Markdown, gráficas PNG
+├── dashboard/
+│   └── app.py              # Dashboard Streamlit: comparativa de modelos, predicción individual, fenotipos
 ├── notebooks/
-│   └── 01_eda_regionalizado.ipynb  # EDA con contraste CDC ↔ ENSANUT 2022
+│   ├── 01_eda_regionalizado.ipynb  # EDA con contraste CDC ↔ ENSANUT 2022
+│   └── 02_fenotipado_kmeans.ipynb  # Análisis K-Means: selección de k, perfiles, prevalencia de diabetes
 ├── pruebas/                # Suite de pruebas de contrato (API, cargador, predictor, preprocesador)
 ├── config.py               # Fuente única de constantes: rutas, umbrales, columnas CDC, semilla
 ├── pyproject.toml          # Dependencias y configuración de pytest
@@ -401,13 +421,13 @@ El proyecto sigue una metodología en espiral de 5 sprints. Estado actual:
 
 | Sprint | Objetivo | Estado |
 |---|---|---|
-| Sprint 1 | Arquitectura base y contratos de interfaz | ✅ Completo |
-| Sprint 2 | Pipeline de datos real y modelos supervisados | ⚠️ 8/10 tickets completos |
-| Sprint 3 | Fenotipado metabólico (K-Means) y dashboard Streamlit | ⚠️ En curso (I4 e I5 ya implementados) |
-| Sprint 4 | Reporte académico, Docker, CI/CD | ❌ Pendiente |
-| Sprint 5 | Observabilidad, endurecimiento y documentación final | ❌ Pendiente |
+| S1–S2 | Arquitectura base, pipeline supervisado (SVM, Árbol, GBM, MLP) | ✅ Completo |
+| S3 | Fenotipado K-Means, notebook de análisis, contraste CDC ↔ ENSANUT | ✅ Completo |
+| S4 | Dashboard Streamlit (Nivel Intermedio +15 pts) | ✅ Completo |
+| S5 | Reporte narrativo, guía de demo, preguntas de defensa | 🔄 En curso |
+| S6 | API con modelo real, comparativa con papers (Nivel Avanzado +30 pts) | ⬜ Pendiente |
 
-Para el detalle de tickets y dependencias, consultar `docs/ROADMAP.md`.
+Para el estado académico detallado y plan de acción, consultar [docs/evaluacion_academica.md](docs/evaluacion_academica.md).
 
 Para la explicación por modelo, consultar [docs/implementacion_modelos/README.md](docs/implementacion_modelos/README.md).
 
