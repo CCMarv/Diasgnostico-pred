@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime, timezone
 import logging
 import json
+import os
 import sys
 import threading
 import time
@@ -157,7 +158,7 @@ def _ejecutar_flujo_clasificacion(
     inicio_etapa = time.perf_counter()
     monitor.actualizar("Persistiendo dataset procesado")
     try:
-        cargador.persistir_procesado(df_limpio, ruta_destino=RUTA_DATASET_PROCESADO)
+        cargador.persistir_procesado(df_limpio[list(COLUMNAS_CDC)], ruta_destino=RUTA_DATASET_PROCESADO)
         _LOG.info("Dataset procesado persistido en %s", RUTA_DATASET_PROCESADO)
     except Exception as exc:  # pragma: no cover - logging only
         _LOG.warning("No fue posible persistir dataset procesado: %s", exc)
@@ -249,7 +250,9 @@ def _ejecutar_flujo_clasificacion(
     ruta_reporte.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(mejor_resultado.modelo, ruta_versionada)
     _LOG.info("Modelo versionado guardado en %s", ruta_versionada)
-    joblib.dump(mejor_resultado.modelo, ruta_modelo)
+    ruta_tmp = ruta_modelo.with_suffix(".tmp")
+    joblib.dump(mejor_resultado.modelo, ruta_tmp)
+    os.replace(ruta_tmp, ruta_modelo)
     _LOG.info("Modelo final guardado en %s", ruta_modelo)
 
     modelos_json = {
@@ -311,7 +314,9 @@ def _ejecutar_flujo_clustering(
     inicio_etapa = time.perf_counter()
     ruta_modelo.parent.mkdir(parents=True, exist_ok=True)
     ruta_reporte.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(mejor.modelo, ruta_modelo)
+    ruta_tmp_cl = ruta_modelo.with_suffix(".tmp")
+    joblib.dump(mejor.modelo, ruta_tmp_cl)
+    os.replace(ruta_tmp_cl, ruta_modelo)
     _LOG.info("Modelo clustering guardado en %s", ruta_modelo)
     metricas = {
         "modo": "clustering",
